@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>提示词画廊 · GPT Image 2 精选提示词聚合</title>
   <meta name="description" content="多渠道聚合的 GPT Image 2 提示词画廊:精选案例、分类导航、一键复制,支持 AI 检索。">
-  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/style.css?v=3">
 </head>
 <body data-page="home">
   <header class="site-header">
@@ -37,7 +37,7 @@
           <div class="hero-stats" id="heroStats"></div>
         </div>
         <aside class="hero-side card-glass">
-          <div class="hs-title">📡 数据自动更新</div>
+          <div class="hs-title"><svg class="ico-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"/><path d="M7.8 16.2a6 6 0 0 1 0-8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 19.1a10 10 0 0 1 0-14.2M19.1 4.9a10 10 0 0 1 0 14.2"/></svg> 数据自动更新</div>
           <div class="hs-row"><span>最近同步</span><b id="hsUpdated">—</b></div>
           <div class="hs-row"><span>效果图</span><b id="hsImages">—</b></div>
           <div class="hs-row"><span>需参考图玩法</span><b id="hsRef">—</b></div>
@@ -63,7 +63,7 @@
       <div class="section-head">
         <div class="sh-left">
           <span class="sh-label">Editor's Pick</span>
-          <h2>🌟 每日精选</h2>
+          <h2><svg class="sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg> 每日精选</h2>
         </div>
         <span class="daily-badge" id="dailyBadge"></span>
         <button class="btn secondary btn-sm" id="dailyShuffle">换一批</button>
@@ -75,7 +75,10 @@
 
     <section class="container">
       <div class="section-head">
-        <h2>📂 按分类浏览</h2>
+        <div class="sh-left">
+          <span class="sh-label">Categories</span>
+          <h2><svg class="sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg> 按分类浏览</h2>
+        </div>
         <a class="more" href="gallery.html">全部分类 →</a>
       </div>
       <div class="cat-grid" id="catGrid"></div>
@@ -83,7 +86,10 @@
 
     <section class="container">
       <div class="section-head">
-        <h2>🆕 最新入库</h2>
+        <div class="sh-left">
+          <span class="sh-label">Latest</span>
+          <h2><svg class="sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> 最新入库</h2>
+        </div>
         <a class="more" href="gallery.html?sort=new">查看全部 →</a>
       </div>
       <div class="waterfall" id="latestGrid"></div>
@@ -119,10 +125,10 @@
     </div>
   </footer>
 
-  <script src="settings.js"></script>
-  <script src="settings.local.js"></script>
-  <script src="assets/js/data-loader.js"></script>
-  <script src="assets/js/app.js"></script>
-  <script src="assets/js/home.js"></script>
+  <script src="settings.js?v=3"></script>
+  <script src="settings.local.js?v=3"></script>
+  <script src="assets/js/data-loader.js?v=3"></script>
+  <script src="assets/js/app.js?v=3"></script>
+  <script src="assets/js/home.js?v=3"></script>
 </body>
 </html>

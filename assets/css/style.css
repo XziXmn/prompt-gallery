@@ -313,10 +313,10 @@ button { font-family: inherit; }
 .stats-bar .item .num { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; color: var(--fg); }
 .stats-bar .item .lbl { color: var(--muted-fg); font-size: 12.5px; }
 
-/* ---------- 瀑布流卡片 ---------- */
-.waterfall { columns: 4 250px; column-gap: 16px; margin-top: 8px; }
+/* ---------- 瀑布流(JS masonry:最短列分配,底部紧凑) ---------- */
+.waterfall { display: flex; gap: 16px; align-items: flex-start; margin-top: 8px; }
+.waterfall .m-col { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 .card {
-  break-inside: avoid; margin-bottom: 16px;
   background: var(--card); border: 1px solid var(--border);
   border-radius: var(--radius); overflow: hidden; cursor: pointer;
   box-shadow: var(--shadow-sm);
@@ -324,16 +324,19 @@ button { font-family: inherit; }
 }
 .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
 .card .thumb { position: relative; background: var(--bg); min-height: 120px; overflow: hidden; }
-.card .thumb img { width: 100%; transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1); }
+.card .thumb img {
+  width: 100%; opacity: 0; transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.card .thumb img.ok { opacity: 1; }
 .card:hover .thumb img { transform: scale(1.035); }
 .card .thumb .ph {
   width: 100%; aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center;
-  color: var(--faint-fg); font-size: 26px;
+  color: var(--faint-fg);
 }
 .card .fav-btn {
   position: absolute; top: 10px; right: 10px; z-index: 2;
   width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
-  background: rgba(255, 255, 255, 0.8); color: var(--fg); font-size: 14px;
+  background: rgba(255, 255, 255, 0.8); color: var(--fg);
   backdrop-filter: blur(14px) saturate(1.6); -webkit-backdrop-filter: blur(14px) saturate(1.6);
   box-shadow: var(--shadow-sm);
   display: flex; align-items: center; justify-content: center;
@@ -341,6 +344,7 @@ button { font-family: inherit; }
 }
 .card:hover .fav-btn, .card .fav-btn.on { opacity: 1; transform: translateY(0); }
 .card .fav-btn.on { color: var(--pink); }
+.card .fav-btn.on .ico-svg { fill: var(--pink); stroke: var(--pink); }
 .card .body { padding: 13px 15px 14px; }
 .card .title {
   font-size: 14px; font-weight: 620; margin: 0 0 8px; line-height: 1.5; letter-spacing: -0.1px;
@@ -358,7 +362,16 @@ button { font-family: inherit; }
 .chip.ref { color: #b8860b; background: rgba(255, 177, 32, 0.14); }
 .chip.src { max-width: 140px; overflow: hidden; text-overflow: ellipsis; }
 
-/* 卡片入场动效 */
+/* 图标与动效 */
+.ico-svg { width: 1em; height: 1em; display: inline-block; vertical-align: -0.12em; flex: none; }
+.sh-ico { width: 20px; height: 20px; color: var(--blue); }
+.btn .ico-svg, .lb-actions .ico-svg { width: 15px; height: 15px; }
+.fav-btn .ico-svg { width: 16px; height: 16px; }
+.lb-close .ico-svg { width: 16px; height: 16px; }
+.cat-card .ico .ico-svg { width: 22px; height: 22px; }
+.carousel-arrow .ico-svg { width: 18px; height: 18px; }
+.hs-title .ico-svg { width: 16px; height: 16px; color: var(--blue); }
+.card .thumb .ph .ico-svg { width: 30px; height: 30px; }
 .card.reveal { opacity: 0; transform: translateY(14px); }
 .card.reveal.in { opacity: 1; transform: translateY(0); }
 

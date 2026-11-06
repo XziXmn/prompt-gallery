@@ -33,13 +33,14 @@
     <div class="toolbar">
       <input id="searchInput" class="search-input" type="search"
         placeholder="搜索标题 / 提示词全文(支持中英文)">
-      <select id="sortSelect" class="sort-select">
-        <option value="hot">最热</option>
-        <option value="new">最新</option>
-        <option value="rand">随机</option>
-      </select>
-      <label class="check-label">
-        <input type="checkbox" id="refToggle"> 仅看需参考图
+      <div class="segmented" id="sortSegmented">
+        <button data-sort="hot" class="on">最热</button>
+        <button data-sort="new">最新</button>
+        <button data-sort="rand">随机</button>
+      </div>
+      <label class="switch-row">
+        <input type="checkbox" id="refToggle"><span class="sw"></span>
+        仅看需参考图
       </label>
     </div>
 

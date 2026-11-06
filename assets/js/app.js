@@ -132,6 +132,7 @@
     lb.innerHTML = `
       <button class="lb-close" title="关闭">✕</button>
       <div class="box">
+        <div class="lb-handle"></div>
         <div class="img-side"><img alt=""></div>
         <div class="txt-side">
           <h3></h3>
@@ -314,7 +315,9 @@
       document.querySelectorAll("[data-cat]").forEach((b) => b.classList.toggle("on", (b.dataset.cat || null) === state.cat));
       document.querySelectorAll("[data-src]").forEach((b) => b.classList.toggle("on", (b.dataset.src || null) === state.src));
       document.getElementById("refToggle").checked = state.ref;
-      document.getElementById("sortSelect").value = state.sort;
+      document.querySelectorAll("#sortSegmented [data-sort]").forEach((b) =>
+        b.classList.toggle("on", b.dataset.sort === state.sort)
+      );
       document.getElementById("searchInput").value = state.q;
     }
 
@@ -360,8 +363,10 @@
         reflow(index); syncUrl();
       }, 220);
     });
-    document.getElementById("sortSelect").addEventListener("change", (ev) => {
-      state.sort = ev.target.value;
+    document.getElementById("sortSegmented").addEventListener("click", (ev) => {
+      const btn = ev.target.closest("[data-sort]");
+      if (!btn) return;
+      state.sort = btn.dataset.sort;
       reflow(index); syncUrl();
     });
     document.getElementById("refToggle").addEventListener("change", (ev) => {
@@ -390,10 +395,10 @@
       `共 ${entries.length} 条` + (missing.length ? ` · ${missing.length} 条已因数据更新失效` : "");
   }
 
-  /* ---------- 明暗主题 ---------- */
+  /* ---------- 明暗主题(默认浅色;iOS 风格) ---------- */
   function initTheme() {
-    const saved = localStorage.getItem("pg_theme");
-    const theme = saved || "dark";
+    const saved = localStorage.getItem("pg_theme_v2");
+    const theme = saved || "light";
     document.documentElement.dataset.theme = theme;
     syncThemeBtn(theme);
     const btn = document.getElementById("themeToggle");
@@ -402,14 +407,15 @@
       btn.addEventListener("click", () => {
         const cur = document.documentElement.dataset.theme === "light" ? "dark" : "light";
         document.documentElement.dataset.theme = cur;
-        localStorage.setItem("pg_theme", cur);
+        localStorage.setItem("pg_theme_v2", cur);
         syncThemeBtn(cur);
       });
     }
   }
   function syncThemeBtn(theme) {
+    // 图标显示"点击后将切换到"的模式
     const btn = document.getElementById("themeToggle");
-    if (btn) btn.textContent = theme === "light" ? "☀️" : "🌙";
+    if (btn) btn.textContent = theme === "light" ? "🌙" : "☀️";
   }
 
   /* ---------- 卡片入场动效 ---------- */

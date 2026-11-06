@@ -23,7 +23,7 @@
 
     renderStats(stats, index);
     renderCarousel(featuredIds, index);
-    renderFeaturedStrip(featuredIds, index);
+    renderDaily(index);
     renderCategories(stats);
     renderLatest(index);
 
@@ -119,12 +119,55 @@
     carouselTimer = setInterval(() => go(carouselIndex + 1, false), 5200);
   }
 
-  function renderFeaturedStrip(featuredIds, index) {
-    const byId = new Map(index.map((e) => [e.id, e]));
-    const rest = featuredIds.map((id) => byId.get(id)).filter(Boolean).slice(1, 9);
-    const grid = document.getElementById("featuredStrip");
-    if (!rest.length) { grid.closest("section").style.display = "none"; return; }
-    grid.innerHTML = rest.map(cardHTML).join("");
+  /* ---------- 每日精选:按日期确定性轮换,每天一组 ---------- */
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function hashStr(s) {
+    let h = 2166136261;
+    for (let i = 0; i < s.length; i++) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return h >>> 0;
+  }
+
+  function renderDaily(index) {
+    const badge = document.getElementById("dailyBadge");
+    const grid = document.getElementById("dailyGrid");
+    const today = new Date();
+    const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    if (badge) badge.textContent = `${key} · 每天更新`;
+
+    // 优质池:有图 + 提示词长度适中;取热度前 80 里按当日种子洗牌,保质量也保新鲜
+    const pool = index
+      .filter((e) => e.img && (e.h || 0) > 0)
+      .sort((a, b) => (b.h || 0) - (a.h || 0))
+      .slice(0, 80);
+    const source = pool.length >= 10 ? pool : index.filter((e) => e.img);
+    const rng = mulberry32(hashStr("daily-" + key));
+    const shuffled = source.slice();
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    // 分类多样性:每类最多 2 张,保证每日一组不单调
+    const usedCats = {};
+    const picks = [];
+    for (const e of shuffled) {
+      const c = usedCats[e.c] || 0;
+      if (c >= 2) continue;
+      usedCats[e.c] = c + 1;
+      picks.push(e);
+      if (picks.length >= 10) break;
+    }
+    if (picks.length < 10) picks.push(...shuffled.filter((e) => !picks.includes(e)).slice(0, 10 - picks.length));
+    grid.innerHTML = picks.map(cardHTML).join("");
     bindCards(grid, openLightbox);
     window.PG.observeReveals(grid);
   }

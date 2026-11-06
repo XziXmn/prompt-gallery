@@ -127,16 +127,16 @@ button { font-family: inherit; }
 }
 .icon-btn:hover { transform: translateY(-1px); background: var(--card); }
 
-/* ---------- Hero(iOS 大标题) ---------- */
-.hero { padding: 60px 0 14px; text-align: center; }
+/* ---------- Hero(iOS 大标题,紧凑给轮播让位) ---------- */
+.hero { padding: 34px 0 8px; text-align: center; }
 .hero h1 {
-  font-size: clamp(30px, 4.6vw, 48px); margin: 0 auto 12px;
-  font-weight: 800; letter-spacing: -0.6px; line-height: 1.22; max-width: 800px;
+  font-size: clamp(24px, 3.4vw, 36px); margin: 0 auto 8px;
+  font-weight: 800; letter-spacing: -0.5px; line-height: 1.22; max-width: 720px;
   color: var(--fg);
 }
-.hero .sub { color: var(--muted-fg); font-size: 16px; max-width: 600px; margin: 0 auto; }
+.hero .sub { color: var(--muted-fg); font-size: 14.5px; max-width: 560px; margin: 0 auto; }
 .hero-search {
-  margin: 28px auto 0; display: flex; gap: 8px; max-width: 640px;
+  margin: 20px auto 0; display: flex; gap: 8px; max-width: 640px;
   padding: 7px 7px 7px 20px; border-radius: 999px;
   background: var(--card-glass);
   border: 1px solid var(--border);
@@ -170,13 +170,20 @@ button { font-family: inherit; }
 .btn.secondary:hover { background: var(--card); opacity: 1; border-color: rgba(24,24,27,0.22); }
 
 /* ---------- 区块标题 ---------- */
-.section-head { display: flex; align-items: baseline; gap: 12px; margin: 44px 0 16px; }
+.section-head { display: flex; align-items: baseline; gap: 12px; margin: 40px 0 16px; }
 .section-head h2 { font-size: 21px; margin: 0; font-weight: 750; letter-spacing: -0.3px; }
-.section-head .more { font-size: 13.5px; color: var(--blue); font-weight: 550; }
+.section-head .more { font-size: 13.5px; color: var(--blue); font-weight: 550; margin-left: auto; }
 .section-head .more:hover { opacity: 0.8; }
 
-/* ---------- 轮播(iOS 圆角大卡) ---------- */
-.carousel-section { padding: 36px 0 6px; }
+/* 每日精选日期徽标 */
+.daily-badge {
+  font-size: 12px; font-weight: 650; color: var(--muted-fg);
+  background: rgba(24, 24, 27, 0.055); border-radius: 999px; padding: 3px 12px;
+}
+[data-theme="dark"] .daily-badge { background: rgba(255,255,255,0.08); }
+
+/* ---------- 轮播(iOS 圆角大卡,置顶) ---------- */
+.carousel-section { padding: 20px 0 6px; }
 .carousel {
   position: relative; border-radius: var(--radius-xl); overflow: hidden;
   background: var(--card);

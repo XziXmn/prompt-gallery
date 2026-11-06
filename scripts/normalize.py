@@ -77,11 +77,14 @@ def main() -> int:
                 continue
             title = (raw.get("title") or "").strip() or prompt[:40]
             t12 = translations.get(f"{source_id}-{dedup_key(prompt)}") or {}
+            raw_cat = raw.get("rawCategory")
             item = {
                 "id": f"{source_id}-{dedup_key(prompt)}",
                 "title": title,
                 "titleZh": raw.get("titleZh") or t12.get("titleZh"),
                 "promptZh": raw.get("promptZh") or t12.get("promptZh"),
+                # 源站原生子分类(卡片左上角彩色标签用)
+                "sub": (str(raw_cat).strip() or None) if raw_cat else None,
                 "prompt": prompt,
                 "category": None,
                 "tags": [t for t in (raw.get("tags") or []) if t][:10],

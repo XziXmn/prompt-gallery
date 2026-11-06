@@ -149,6 +149,14 @@
   /* ============================================================
      卡片与网格:DOM 节点按 id 复用(杜绝图片重建闪烁)+ JS masonry
      ============================================================ */
+  /** 子分类彩色胶囊(水仙式,左上角;颜色由名称哈希决定,同分类恒同色) */
+  function subBadgeHTML(sub) {
+    if (!sub) return "";
+    let h = 0;
+    for (let i = 0; i < sub.length; i++) h = (h * 31 + sub.charCodeAt(i)) >>> 0;
+    return `<span class="sub-badge" style="--sb-h:${h % 360}">${esc(sub)}</span>`;
+  }
+
   function cardEl(it) {
     const el = document.createElement("article");
     el.className = "card";
@@ -160,6 +168,7 @@
     el.innerHTML = `
       <div class="thumb">
         <button class="fav-btn${fav}" data-fav="${esc(it.id)}" title="收藏">${svgWrap(ICONS.heart)}</button>
+        ${subBadgeHTML(it.sub)}
         ${it.img ? '<img loading="lazy" alt="' + esc(title) + '">' : '<div class="ph">' + svgWrap(ICONS.image) + '</div>'}
       </div>
       <div class="body">
@@ -337,6 +346,7 @@
     lb.querySelector(".img-side img").src = imgSrc(it.image) || PLACEHOLDER;
     lb.querySelector(".lb-meta").innerHTML = `
       <span class="chip cat">${esc(it.category)}</span>
+      ${it.sub ? `<span class="chip">${esc(it.sub)}</span>` : ""}
       <span class="chip src">${esc((it.source && it.source.name) || "")}</span>
       ${it.author ? `<span class="chip">${esc(it.author)}</span>` : ""}
       ${it.needsReference ? '<span class="chip ref">需参考图</span>' : ""}`;
@@ -394,6 +404,7 @@
   function toIdx(it) {
     return {
       id: it.id, t: it.title, tz: it.titleZh, c: it.category,
+      sub: it.sub,
       s: (it.source && it.source.id) || "", img: it.image,
       nr: it.needsReference, d: it.createdAt, h: it.hot || 0,
     };

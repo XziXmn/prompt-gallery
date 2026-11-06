@@ -34,6 +34,7 @@ def main() -> int:
             "t": it["title"],
             "tz": it.get("titleZh"),
             "c": it["category"],
+            "sub": it.get("sub"),
             "s": it["source"]["id"],
             "img": it.get("image"),
             "nr": it.get("needsReference", False),

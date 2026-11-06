@@ -29,6 +29,7 @@ https://raw.githubusercontent.com/<owner/repo>/main/data/stats.json
   "title": "原标题", "titleZh": "中文标题(可能缺省)",
   "prompt": "完整提示词原文 —— 供图像模型使用,不要翻译/改写",
   "promptZh": "提示词中文对照(机器翻译,仅供理解;可能缺省)",
+  "sub": "源站原生子分类(如 水仙的 大凶美女/媚眼诱惑;david 的 海报设计;可能缺省)",
   "category": "海报排版|UI界面|电商产品|人像写真|摄影写实|插画艺术|3D潮玩|信息图表|Logo品牌|文字渲染|古风历史|游戏动漫|场景叙事|视频模板|其他",
   "tags": ["来源原生分类", "风格词"],
   "source": {"id": "canghe", "name": "苍何 GPT-Image2 Gallery", "url": "原始案例链接"},

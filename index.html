@@ -24,13 +24,29 @@
   </header>
 
   <main>
+    <!-- 双栏 Hero(信息位:标题+描述+CTA+统计 / 右侧数据卡) -->
     <section class="hero container">
-      <h1>把爆款图片变成可复用的提示词</h1>
-      <p class="sub">多渠道自动聚合 GPT Image 2 精选提示词:浏览真实案例、一键复制、按需检索,还有专为 AI 准备的数据接口。</p>
-      <div class="hero-search">
-        <input id="heroSearch" type="search" placeholder="搜索提示词、风格、场景…(如:海报、手办、古风)">
-        <button class="btn" id="heroSearchBtn">搜索</button>
-        <a class="btn secondary" href="gallery.html">浏览全部</a>
+      <div class="hero-grid">
+        <div class="hero-left">
+          <h1>把爆款图片变成<br>可复用的提示词</h1>
+          <p class="sub"><b id="heroTotal">—</b> 条精选提示词,聚合自 <b id="heroSources">—</b> 个渠道——人像、海报、3D 潮玩、UI、插画、古风……自动去重、自动分类、标题汉化,总有一句能帮你出图。</p>
+          <div class="hero-cta">
+            <a class="btn blue" href="gallery.html">开始逛画廊</a>
+            <a class="btn secondary" href="about.html">AI 如何检索</a>
+          </div>
+          <div class="hero-stats" id="heroStats"></div>
+        </div>
+        <aside class="hero-side card-glass">
+          <div class="hs-title">📡 数据自动更新</div>
+          <div class="hs-row"><span>最近同步</span><b id="hsUpdated">—</b></div>
+          <div class="hs-row"><span>效果图</span><b id="hsImages">—</b></div>
+          <div class="hs-row"><span>需参考图玩法</span><b id="hsRef">—</b></div>
+          <div class="hs-note">GitHub Actions 每 6 小时自动同步、去重、分类、翻译;AI 可通过 MCP / AI.md 直接检索全库。</div>
+          <div class="hs-actions">
+            <a class="btn secondary" href="AI.md" target="_blank">AI.md</a>
+            <a class="btn secondary" href="ATTRIBUTION.md" target="_blank">数据来源</a>
+          </div>
+        </aside>
       </div>
     </section>
 
@@ -45,10 +61,15 @@
 
     <section class="container">
       <div class="section-head">
-        <h2>🌟 每日精选</h2>
+        <div class="sh-left">
+          <span class="sh-label">Editor's Pick</span>
+          <h2>🌟 每日精选</h2>
+        </div>
         <span class="daily-badge" id="dailyBadge"></span>
-        <a class="more" href="gallery.html?sort=hot">查看更多热门 →</a>
+        <button class="btn secondary btn-sm" id="dailyShuffle">换一批</button>
+        <a class="more" href="gallery.html?sort=hot">查看全部 →</a>
       </div>
+      <p class="sec-sub">从各路主题里捞了几条,点卡片看提示词详情;不喜欢这波,点「换一批」。</p>
       <div class="waterfall" id="dailyGrid"></div>
     </section>
 
@@ -68,8 +89,26 @@
       <div class="waterfall" id="latestGrid"></div>
     </section>
 
+    <!-- 底部 CTA(水仙式双卡) -->
     <section class="container">
-      <div class="stats-bar" id="statsBar"></div>
+      <div class="cta-grid">
+        <div class="cta-card">
+          <h3>有好的提示词?投给我们</h3>
+          <p>用 Grok bot 采集 X 上的新玩法,把 JSON 丢进 <code>data/inbox/</code>,自动去重、分类、上线——你的发现会被所有人用到。</p>
+          <div class="cta-actions">
+            <a class="btn blue" href="https://github.com/" target="_blank" rel="noreferrer">去 GitHub 投稿</a>
+            <a class="btn secondary" href="grok-collect-prompt.txt" target="_blank">采集指令模板</a>
+          </div>
+        </div>
+        <div class="cta-card">
+          <h3>让 AI 帮你查提示词</h3>
+          <p>内置 MCP server 与数据切片,把本库接入 ZCode / Claude Desktop,一句"找儿童绘本风格的提示词"直接返回可复制原文。</p>
+          <div class="cta-actions">
+            <a class="btn blue" href="AI.md" target="_blank">AI 使用说明</a>
+            <a class="btn secondary" href="mcp/README.md" target="_blank">MCP 接入指南</a>
+          </div>
+        </div>
+      </div>
     </section>
   </main>
 

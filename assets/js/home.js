@@ -21,16 +21,12 @@
       window.PGData.getFeatured().catch(() => []),
     ]);
 
-    renderStats(stats, index);
+    renderHero(stats, index);
     renderCarousel(featuredIds, index);
     renderDaily(index);
+    wireDailyShuffle(index);
     renderCategories(stats);
     renderLatest(index);
-
-    document.getElementById("heroSearchBtn").addEventListener("click", heroSearch);
-    document.getElementById("heroSearch").addEventListener("keydown", (ev) => {
-      if (ev.key === "Enter") heroSearch();
-    });
   }
 
   function heroSearch() {
@@ -38,16 +34,30 @@
     location.href = q ? `gallery.html?q=${encodeURIComponent(q)}` : "gallery.html";
   }
 
-  function renderStats(stats, index) {
-    const box = document.getElementById("statsBar");
+  /* ---------- Hero 信息位 ---------- */
+  const fmt = (n) => Number(n || 0).toLocaleString("en-US");
+
+  function renderHero(stats, index) {
     const sources = Object.entries(stats.perSource || {}).filter(([, n]) => n > 0);
-    const totalImgs = stats.images || index.filter((e) => e.img).length;
-    box.innerHTML = `
-      <div class="item"><div class="num">${index.length}</div><div class="lbl">提示词</div></div>
-      <div class="item"><div class="num">${totalImgs}</div><div class="lbl">效果图</div></div>
-      <div class="item"><div class="num">${sources.length}</div><div class="lbl">来源渠道</div></div>
-      <div class="item"><div class="num">${Object.keys(stats.categoryCounts || {}).filter((k) => stats.categoryCounts[k] > 0).length}</div><div class="lbl">分类</div></div>
-      <div class="item"><div class="num">${esc((stats.generatedAt || "").slice(0, 10))}</div><div class="lbl">数据更新</div></div>`;
+    const cats = Object.values(stats.categoryCounts || {}).filter((n) => n > 0).length;
+    const total = document.getElementById("heroTotal");
+    const srcN = document.getElementById("heroSources");
+    if (total) total.textContent = fmt(index.length);
+    if (srcN) srcN.textContent = sources.length;
+
+    const hs = document.getElementById("heroStats");
+    if (hs) {
+      hs.innerHTML = `
+        <div class="s"><div class="n">${fmt(index.length)}</div><div class="l">精选提示词</div></div>
+        <div class="s"><div class="n">${cats}</div><div class="l">统一分类</div></div>
+        <div class="s"><div class="n">${sources.length}</div><div class="l">来源渠道</div></div>`;
+    }
+    const upd = document.getElementById("hsUpdated");
+    const imgs = document.getElementById("hsImages");
+    const ref = document.getElementById("hsRef");
+    if (upd) upd.textContent = (stats.generatedAt || "").slice(0, 16).replace("T", " ") + " UTC";
+    if (imgs) imgs.textContent = fmt(stats.images || 0) + " 张";
+    if (ref) ref.textContent = fmt(stats.needsReference || 0) + " 条";
   }
 
   function renderCarousel(featuredIds, index) {
@@ -119,7 +129,7 @@
     carouselTimer = setInterval(() => go(carouselIndex + 1, false), 5200);
   }
 
-  /* ---------- 每日精选:按日期确定性轮换,每天一组 ---------- */
+  /* ---------- 每日精选:按日期确定性轮换 + 换一批 ---------- */
   function mulberry32(seed) {
     return function () {
       seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
@@ -137,26 +147,20 @@
     return h >>> 0;
   }
 
-  function renderDaily(index) {
-    const badge = document.getElementById("dailyBadge");
-    const grid = document.getElementById("dailyGrid");
-    const today = new Date();
-    const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
-    if (badge) badge.textContent = `${key} · 每天更新`;
+  let dailyPool = [];
+  let dailyCursor = 0;
 
-    // 优质池:有图 + 提示词长度适中;取热度前 80 里按当日种子洗牌,保质量也保新鲜
+  function buildDailyPool(index) {
+    // 优质池:有图 + 有互动;取热度前 120
     const pool = index
       .filter((e) => e.img && (e.h || 0) > 0)
       .sort((a, b) => (b.h || 0) - (a.h || 0))
-      .slice(0, 80);
-    const source = pool.length >= 10 ? pool : index.filter((e) => e.img);
-    const rng = mulberry32(hashStr("daily-" + key));
-    const shuffled = source.slice();
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(rng() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    // 分类多样性:每类最多 2 张,保证每日一组不单调
+      .slice(0, 120);
+    return pool.length >= 10 ? pool : index.filter((e) => e.img);
+  }
+
+  function pickDaily(shuffled) {
+    // 分类多样性:每类最多 2 张
     const usedCats = {};
     const picks = [];
     for (const e of shuffled) {
@@ -166,11 +170,59 @@
       picks.push(e);
       if (picks.length >= 10) break;
     }
-    if (picks.length < 10) picks.push(...shuffled.filter((e) => !picks.includes(e)).slice(0, 10 - picks.length));
-    grid.innerHTML = picks.map(cardHTML).join("");
+    if (picks.length < 10) {
+      picks.push(...shuffled.filter((e) => !picks.includes(e)).slice(0, 10 - picks.length));
+    }
+    return picks;
+  }
+
+  function renderDailyAt(shuffled, grid) {
+    grid.innerHTML = shuffled.slice(0, 10).map(cardHTML).join("");
     bindCards(grid, openLightbox);
     window.PG.observeReveals(grid);
   }
+
+  function renderDaily(index) {
+    const badge = document.getElementById("dailyBadge");
+    const grid = document.getElementById("dailyGrid");
+    const today = new Date();
+    const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    if (badge) badge.textContent = `${key} · 每天更新`;
+
+    dailyPool = buildDailyPool(index);
+    const rng = mulberry32(hashStr("daily-" + key));
+    const shuffled = dailyPool.slice();
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(rng() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    renderDailyAt(pickDaily(shuffled), grid);
+
+    // 换一批:随机再捞一批(避免和当前重复)
+    const btn = document.getElementById("dailyShuffle");
+    if (btn && !btn.dataset.bound) {
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", () => {
+        if (!dailyPool.length) return;
+        let next, tries = 0;
+        const current = new Set([...grid.querySelectorAll(".card")].map((c) => c.dataset.id));
+        do {
+          const r = mulberry32((Math.random() * 2 ** 31) | 0);
+          const s = dailyPool.slice();
+          for (let i = s.length - 1; i > 0; i--) {
+            const j = Math.floor(r() * (i + 1));
+            [s[i], s[j]] = [s[j], s[i]];
+          }
+          next = pickDaily(s);
+          tries++;
+        } while (tries < 6 && next.every((e) => current.has(e.id)));
+        renderDailyAt(next, grid);
+        grid.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }
+
+  function wireDailyShuffle(_index) { /* 绑定已在 renderDaily 内完成 */ }
 
   function renderCategories(stats) {
     const grid = document.getElementById("catGrid");

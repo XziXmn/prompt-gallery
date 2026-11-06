@@ -159,6 +159,9 @@
     const key = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
     if (badge) badge.textContent = `${key} · 每天更新`;
 
+    const moreN = document.getElementById("dailyMoreN");
+    if (moreN) moreN.textContent = fmt(index.length);
+
     dailyPool = index
       .filter((e) => e.img && (e.h || 0) > 0)
       .sort((a, b) => (b.h || 0) - (a.h || 0))
@@ -178,6 +181,8 @@
       btn.dataset.bound = "1";
       btn.addEventListener("click", () => {
         if (!dailyPool.length) return;
+        // 原子换列 + 保持滚动位置:不弹页、不跳动
+        const y = window.scrollY;
         let next, tries = 0;
         const current = new Set([...grid.querySelectorAll(".card")].map((c) => c.dataset.id));
         do {
@@ -191,7 +196,7 @@
           tries++;
         } while (tries < 6 && next.every((e) => current.has(e.id)));
         renderGrid(grid, next, openLightbox);
-        grid.scrollIntoView({ behavior: "smooth", block: "start" });
+        window.scrollTo({ top: y, behavior: "instant" });
       });
     }
   }

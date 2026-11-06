@@ -181,6 +181,8 @@
       </div>`;
     const img = el.querySelector("img");
     if (img) {
+      // 已知宽高比时预留空间,加载完不跳动
+      if (it.ar) img.style.aspectRatio = (1 / it.ar).toFixed(4);
       img.addEventListener("load", () => img.classList.add("ok"), { once: true });
       img.addEventListener("error", () => { img.src = PLACEHOLDER; img.classList.add("ok"); }, { once: true });
       img.src = imgSrc(it.img);
@@ -193,29 +195,30 @@
   let resizeTimer = null;
 
   function masonryPlace(container, map, items) {
-    const width = container.clientWidth || 800;
+    const width = container.clientWidth || container.parentElement.clientWidth || 800;
     const minCol = 236, gap = 16;
     const cols = Math.max(2, Math.min(5, Math.floor((width + gap) / (minCol + gap))));
-    container.innerHTML = "";
+    // 离线构建列结构,replaceChildren 原子替换——页面高度不塌陷,滚动位置稳定
     const colEls = [];
     const colH = new Array(cols).fill(0);
+    const frag = document.createDocumentFragment();
     for (let i = 0; i < cols; i++) {
       const d = document.createElement("div");
       d.className = "m-col";
-      container.appendChild(d);
+      frag.appendChild(d);
       colEls.push(d);
     }
     const colW = (width - gap * (cols - 1)) / cols;
-    const estH = colW * 1.28 + 92;   // 图多为竖图;加载后不重排,避免二次闪动
     items.forEach((it, idx) => {
       const el = map.get(it.id);
+      const estH = colW * (it.ar || 1.28) + 92;   // 有真实宽高比时精确分列
       let target = 0;
       for (let i = 1; i < cols; i++) if (colH[i] < colH[target]) target = i;
-      // 首轮按顺序铺满第一行,保证每列都有内容
-      if (idx < cols) target = idx;
+      if (idx < cols) target = idx;   // 首行每列保底一张
       colEls[target].appendChild(el);
       colH[target] += estH;
     });
+    container.replaceChildren(frag);
   }
 
   /**
@@ -245,6 +248,14 @@
       if (!el) { el = cardEl(it); map.set(it.id, el); newEls.push(el); }
     }
     masonryPlace(container, map, items);
+
+    // 兜底:接进文档后已加载完但未标记的图(碎片树中 src 竞态),立即淡入
+    container.querySelectorAll("img:not(.ok)").forEach((img) => {
+      if (img.complete) {
+        if (!img.naturalWidth) img.src = PLACEHOLDER;
+        img.classList.add("ok");
+      }
+    });
 
     // 事件委托(每容器绑一次)
     if (!container.dataset.bound) {
@@ -610,7 +621,7 @@
     const grid = document.getElementById("grid");
     const ids = favStore.all();
     if (!ids.length) {
-      grid.innerHTML = '<div class="empty-tip">还没有收藏,去画廊页点亮 ♥ 吧</div>';
+      grid.innerHTML = '<div class="empty-tip">还没有收藏,去画廊页收藏喜欢的提示词吧</div>';
       document.getElementById("resultInfo").textContent = "共 0 条";
       return;
     }

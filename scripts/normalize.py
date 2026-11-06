@@ -5,6 +5,7 @@ id = 源前缀 + 规范化prompt的SHA1前12位;跨源重复时保留字段更�
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import sys
 from datetime import datetime, timezone
@@ -18,7 +19,8 @@ from taxonomy import OTHER, UNIFIED_CATEGORIES, classify  # noqa: E402
 OUT_PATH = DATA_DIR / "prompts.json"
 TRANSLATIONS_PATH = SOURCES_DIR / "translations.json"
 AUTO_TRANSLATIONS_PATH = SOURCES_DIR / "translations-auto.json"
-TRANSLATION_FILES = {"translations.json", "translations-auto.json", "inbox-ledger.json"}
+DIMS_PATH = SOURCES_DIR / "img-dims.json"
+TRANSLATION_FILES = {"translations.json", "translations-auto.json", "inbox-ledger.json", "img-dims.json"}
 
 # 去重冲突时的源优先级(越小越优先保留)
 SOURCE_PRIORITY = ["canghe", "handbook", "david", "youmind", "gptimage2", "suxian", "xtrend", "inbox"]
@@ -54,6 +56,11 @@ def main() -> int:
                 if t.get("promptZh"):
                     rec["promptZh"] = t["promptZh"]
 
+    # 图片尺寸表 {urlHash: {w,h}}
+    dims_map: dict[str, dict] = {}
+    if DIMS_PATH.exists():
+        dims_map = json.loads(DIMS_PATH.read_text(encoding="utf-8"))
+
     by_key: dict[str, dict] = {}
     per_source: dict[str, int] = {}
     dedup_hits: dict[str, int] = {}
@@ -78,6 +85,15 @@ def main() -> int:
             title = (raw.get("title") or "").strip() or prompt[:40]
             t12 = translations.get(f"{source_id}-{dedup_key(prompt)}") or {}
             raw_cat = raw.get("rawCategory")
+
+            # 图片宽高比(masonry 精确分列;img_dimensions.py 产出)
+            ar = None
+            image_url = raw.get("image")
+            if image_url and DIMS_PATH.exists():
+                dims = dims_map.get(hashlib.sha1(image_url.encode()).hexdigest()[:12])
+                if dims and dims.get("w") and dims.get("h"):
+                    ar = round(dims["h"] / dims["w"], 3)
+
             item = {
                 "id": f"{source_id}-{dedup_key(prompt)}",
                 "title": title,
@@ -101,6 +117,7 @@ def main() -> int:
                 "lang": raw.get("lang") or detect_lang(prompt),
                 "stats": raw.get("stats") or {},
                 "hot": engagement(raw.get("stats")),
+                "ar": ar,
             }
             if raw.get("rawCategory") and raw.get("rawCategory") not in item["tags"]:
                 item["tags"].append(str(raw.get("rawCategory"))[:30])

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>提示词画廊 · GPT Image 2 精选提示词聚合</title>
   <meta name="description" content="多渠道聚合的 GPT Image 2 提示词画廊:精选案例、分类导航、一键复制,支持 AI 检索。">
-  <link rel="stylesheet" href="assets/css/style.css?v=4">
+  <link rel="stylesheet" href="assets/css/style.css?v=5">
 </head>
 <body data-page="home">
   <header class="site-header">
@@ -18,7 +18,7 @@
         <a href="about.html" data-nav="about">关于</a>
       </nav>
       <div class="header-right">
-        <button class="icon-btn" id="themeToggle" title="切换明暗主题" aria-label="切换明暗主题">🌙</button>
+        <button class="icon-btn" id="themeToggle" title="切换明暗主题" aria-label="切换明暗主题"></button>
       </div>
     </div>
   </header>
@@ -63,14 +63,16 @@
       <div class="section-head">
         <div class="sh-left">
           <span class="sh-label">Editor's Pick</span>
-          <h2><svg class="sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg> 每日精选</h2>
+          <div class="sh-title-row">
+            <h2><svg class="sh-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z"/></svg> 每日精选</h2>
+            <span class="daily-badge" id="dailyBadge"></span>
+          </div>
         </div>
-        <span class="daily-badge" id="dailyBadge"></span>
-        <button class="btn secondary btn-sm" id="dailyShuffle">换一批</button>
-        <a class="more" href="gallery.html?sort=hot">查看全部 →</a>
+        <button class="btn secondary btn-sm push" id="dailyShuffle">换一批</button>
       </div>
       <p class="sec-sub">从各路主题里捞了几条,点卡片看提示词详情;不喜欢这波,点「换一批」。</p>
       <div class="waterfall" id="dailyGrid"></div>
+      <div class="daily-more"><a class="btn blue" href="gallery.html?sort=hot">查看全部 <span id="dailyMoreN"></span> 条</a></div>
     </section>
 
     <section class="container">
@@ -125,10 +127,10 @@
     </div>
   </footer>
 
-  <script src="settings.js?v=4"></script>
-  <script src="settings.local.js?v=4"></script>
-  <script src="assets/js/data-loader.js?v=4"></script>
-  <script src="assets/js/app.js?v=4"></script>
-  <script src="assets/js/home.js?v=4"></script>
+  <script src="settings.js?v=5"></script>
+  <script src="settings.local.js?v=5"></script>
+  <script src="assets/js/data-loader.js?v=5"></script>
+  <script src="assets/js/app.js?v=5"></script>
+  <script src="assets/js/home.js?v=5"></script>
 </body>
 </html>

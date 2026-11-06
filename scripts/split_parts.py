@@ -37,6 +37,7 @@ def main() -> int:
             "sub": it.get("sub"),
             "s": it["source"]["id"],
             "img": it.get("image"),
+            "ar": it.get("ar"),
             "nr": it.get("needsReference", False),
             "d": it.get("createdAt"),
             "h": it.get("hot", 0),

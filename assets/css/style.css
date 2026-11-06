@@ -202,6 +202,9 @@ button { font-family: inherit; }
 .section-head .more { font-size: 13.5px; color: var(--blue); font-weight: 550; margin-left: auto; }
 .section-head .more:hover { opacity: 0.8; }
 .sh-left { display: flex; flex-direction: column; gap: 0; }
+.sh-title-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.section-head .push { margin-left: auto; }
+.daily-more { text-align: center; margin-top: 30px; }
 .sh-label {
   font-size: 11px; font-weight: 750; letter-spacing: 1.6px; text-transform: uppercase;
   color: var(--blue);

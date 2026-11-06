@@ -16,13 +16,18 @@
         <a href="favorites.html" data-nav="favorites">收藏</a>
         <a href="about.html" data-nav="about">关于</a>
       </nav>
+      <div class="header-right">
+        <button class="icon-btn" id="themeToggle" title="切换明暗主题" aria-label="切换明暗主题">🌙</button>
+      </div>
     </div>
   </header>
 
   <main class="container">
-    <div class="filter-bar">
-      <div class="filter-row" id="catChips"><span class="lbl">分类</span></div>
-      <div class="filter-row" id="srcChips"><span class="lbl">来源</span></div>
+    <div class="filter-wrap">
+      <div class="glass">
+        <div class="filter-row" id="catChips"><span class="lbl">分类</span></div>
+        <div class="filter-row" id="srcChips"><span class="lbl">来源</span></div>
+      </div>
     </div>
 
     <div class="toolbar">
@@ -51,6 +56,8 @@
     </div>
   </footer>
 
+  <script src="settings.js"></script>
+  <script src="settings.local.js"></script>
   <script src="assets/js/data-loader.js"></script>
   <script src="assets/js/app.js"></script>
 </body>

@@ -1,0 +1,32 @@
+services:
+  # 画廊站点 + 图片缓存代理
+  gallery:
+    image: nginx:1.27-alpine
+    container_name: prompt-gallery
+    ports:
+      - "8088:80"            # 对外端口,可按需改成 80/443(建议前面再套一层 caddy/traefik 做 HTTPS)
+    volumes:
+      - ..:/usr/share/nginx/html:ro                        # 仓库根即站点根
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./settings.server.js:/usr/share/nginx/html/settings.local.js:ro
+      - img-cache:/var/cache/nginx/img
+    restart: unless-stopped
+
+  # 每 30 分钟从 GitHub 拉取最新数据(仓库公开,无需任何密钥)
+  sync:
+    image: alpine/git:2.45
+    container_name: prompt-gallery-sync
+    working_dir: /repo
+    volumes:
+      - ..:/repo
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      "git config --global --add safe.directory /repo &&
+       while true; do
+         git pull --ff-only origin main || echo '[sync] pull failed, retry later';
+         sleep 1800;
+       done"
+    restart: unless-stopped
+
+volumes:
+  img-cache:

@@ -24,6 +24,15 @@
       .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 
+  /** 图片地址:服务器部署(PG_SETTINGS.imgProxy)时走本地缓存代理 /img/?u=… */
+  function imgSrc(u) {
+    if (!u) return PLACEHOLDER;
+    if (window.PG_SETTINGS && window.PG_SETTINGS.imgProxy) {
+      return "/img/?u=" + encodeURIComponent(u);
+    }
+    return u;
+  }
+
   /* ---------- 收藏(localStorage) ---------- */
   const FAV_KEY = "pg_favorites";
   const favStore = {
@@ -77,7 +86,7 @@
     const src = SOURCE_NAMES[it.s] || it.s;
     const fav = favStore.has(it.id) ? " on" : "";
     const img = it.img
-      ? `<img loading="lazy" src="${esc(it.img)}" alt="${esc(title)}"
+      ? `<img loading="lazy" src="${esc(imgSrc(it.img))}" alt="${esc(title)}"
            onerror="this.onerror=null;this.src='${PLACEHOLDER}'">`
       : `<div class="ph">🖼️</div>`;
     const ref = it.nr ? `<span class="chip ref">需参考图</span>` : "";
@@ -127,9 +136,13 @@
         <div class="txt-side">
           <h3></h3>
           <div class="lb-meta"></div>
+          <div class="prompt-toolbar" style="display:none">
+            <button class="fchip on" data-lang="orig">原文</button>
+            <button class="fchip" data-lang="zh">中文对照<small style="opacity:.6">机器翻译</small></button>
+          </div>
           <div class="prompt-box"></div>
           <div class="lb-actions">
-            <button class="btn" data-act="copy">📋 复制提示词</button>
+            <button class="btn" data-act="copy">📋 复制当前内容</button>
             <button class="btn secondary" data-act="fav">♥ 收藏</button>
             <a class="btn secondary" data-act="src" target="_blank" rel="noreferrer" style="display:none">↗ 查看来源</a>
           </div>
@@ -144,9 +157,23 @@
   }
 
   let currentLightboxItem = null;
+  let promptLang = "orig"; // 当前灯箱显示:orig=原文 zh=中文对照
+
+  function renderLightboxPrompt() {
+    const lb = document.querySelector(".lightbox");
+    if (!lb || !currentLightboxItem) return;
+    const it = currentLightboxItem;
+    const text = promptLang === "zh" && it.promptZh ? it.promptZh : it.prompt || "";
+    lb.querySelector(".prompt-box").textContent = text;
+    lb.querySelectorAll(".prompt-toolbar [data-lang]").forEach((b) =>
+      b.classList.toggle("on", b.dataset.lang === promptLang)
+    );
+  }
+
   async function openLightbox(id) {
     const lb = ensureLightbox();
     lb.classList.add("open");
+    promptLang = "orig";
     // 骨架态
     lb.querySelector("h3").textContent = "加载中…";
     lb.querySelector(".prompt-box").textContent = "";
@@ -155,14 +182,17 @@
     currentLightboxItem = it;
     const title = it.titleZh || it.title || "";
     lb.querySelector("h3").textContent = title;
-    lb.querySelector(".img-side img").src = it.image || PLACEHOLDER;
+    lb.querySelector(".img-side img").src = imgSrc(it.image) || PLACEHOLDER;
     const meta = lb.querySelector(".lb-meta");
     meta.innerHTML = `
       <span class="chip cat">${esc(CAT_ICONS[it.category] || "")} ${esc(it.category)}</span>
       <span class="chip src">${esc(it.source && it.source.name || "")}</span>
       ${it.author ? `<span class="chip">${esc(it.author)}</span>` : ""}
       ${it.needsReference ? `<span class="chip ref">需参考图</span>` : ""}`;
-    lb.querySelector(".prompt-box").textContent = it.prompt || "";
+    // 有中文对照时显示切换按钮
+    const toolbar = lb.querySelector(".prompt-toolbar");
+    toolbar.style.display = it.promptZh ? "flex" : "none";
+    renderLightboxPrompt();
     const srcLink = lb.querySelector('[data-act="src"]');
     if (it.source && it.source.url) {
       srcLink.href = it.source.url;
@@ -181,11 +211,21 @@
   document.addEventListener("click", async (ev) => {
     const lb = ev.target.closest(".lightbox");
     if (!lb || !currentLightboxItem) return;
+    const langBtn = ev.target.closest(".prompt-toolbar [data-lang]");
+    if (langBtn) {
+      promptLang = langBtn.dataset.lang;
+      renderLightboxPrompt();
+      return;
+    }
     const act = ev.target.closest("[data-act]");
     if (!act) return;
     if (act.dataset.act === "copy") {
-      const ok = await copyText(currentLightboxItem.prompt || "");
-      toast(ok ? "提示词已复制 ✓" : "复制失败,请手动选择文本");
+      const text =
+        promptLang === "zh" && currentLightboxItem.promptZh
+          ? currentLightboxItem.promptZh
+          : currentLightboxItem.prompt || "";
+      const ok = await copyText(text);
+      toast(ok ? (promptLang === "zh" ? "中文对照已复制 ✓" : "提示词原文已复制 ✓") : "复制失败,请手动选择文本");
     } else if (act.dataset.act === "fav") {
       const on = favStore.toggle(currentLightboxItem.id);
       act.textContent = on ? "♥ 已收藏" : "♥ 收藏";
@@ -207,7 +247,7 @@
       const full = window.__pgFullMap;
       const fields = (e) => {
         const item = full && full.get(e.id);
-        return `${e.t || ""} ${e.tz || ""} ${item ? item.prompt : ""}`.toLowerCase();
+        return `${e.t || ""} ${e.tz || ""} ${item ? item.prompt : ""} ${item && item.promptZh ? item.promptZh : ""}`.toLowerCase();
       };
       list = list.filter((e) => fields(e).includes(q));
     }
@@ -295,6 +335,7 @@
         ? state.list.slice(0, state.shown).map(cardHTML).join("")
         : `<div class="empty-tip" style="column-span:all">没有匹配的提示词,换个关键词试试</div>`;
       bindCards(grid, openLightbox);
+      observeReveals(grid);
       document.getElementById("resultInfo").textContent =
         `共 ${state.list.length} 条${state.q ? ` · 关键词「${state.q}」` : ""}`;
       const btn = document.getElementById("loadMore");
@@ -305,6 +346,7 @@
       state.shown = Math.min(state.shown + PAGE_SIZE, state.list.length);
       grid.innerHTML = state.list.slice(0, state.shown).map(cardHTML).join("");
       bindCards(grid, openLightbox);
+      observeReveals(grid);
       if (state.shown >= state.list.length) btnHide();
       function btnHide() { document.getElementById("loadMore").style.display = "none"; }
     });
@@ -343,12 +385,55 @@
     grid.innerHTML = entries.map(cardHTML).join("") ||
       `<div class="empty-tip">收藏的条目已不存在(数据更新被去重合并)</div>`;
     bindCards(grid, openLightbox);
+    observeReveals(grid);
     document.getElementById("resultInfo").textContent =
       `共 ${entries.length} 条` + (missing.length ? ` · ${missing.length} 条已因数据更新失效` : "");
   }
 
+  /* ---------- 明暗主题 ---------- */
+  function initTheme() {
+    const saved = localStorage.getItem("pg_theme");
+    const theme = saved || "dark";
+    document.documentElement.dataset.theme = theme;
+    syncThemeBtn(theme);
+    const btn = document.getElementById("themeToggle");
+    if (btn && !btn.dataset.bound) {
+      btn.dataset.bound = "1";
+      btn.addEventListener("click", () => {
+        const cur = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+        document.documentElement.dataset.theme = cur;
+        localStorage.setItem("pg_theme", cur);
+        syncThemeBtn(cur);
+      });
+    }
+  }
+  function syncThemeBtn(theme) {
+    const btn = document.getElementById("themeToggle");
+    if (btn) btn.textContent = theme === "light" ? "☀️" : "🌙";
+  }
+
+  /* ---------- 卡片入场动效 ---------- */
+  const revealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) {
+          en.target.classList.add("in");
+          revealObserver.unobserve(en.target);
+        }
+      });
+    },
+    { rootMargin: "80px" }
+  );
+  function observeReveals(container) {
+    container.querySelectorAll(".card:not(.in)").forEach((c) => {
+      c.classList.add("reveal");
+      revealObserver.observe(c);
+    });
+  }
+
   /* ---------- 页面路由 ---------- */
   document.addEventListener("DOMContentLoaded", () => {
+    initTheme();
     const page = document.body.dataset.page;
     // 高亮导航
     document.querySelectorAll(".nav a").forEach((a) => {
@@ -359,6 +444,6 @@
   });
 
   /* 导出 */
-  window.PG = { esc, cardHTML, bindCards, openLightbox, favStore, toast, copyText, CAT_ICONS, SOURCE_NAMES };
+  window.PG = { esc, cardHTML, bindCards, openLightbox, favStore, toast, copyText, CAT_ICONS, SOURCE_NAMES, imgSrc, observeReveals };
   window.PG_PLACEHOLDER = PLACEHOLDER;
 })();

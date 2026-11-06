@@ -161,8 +161,8 @@ def tool_search(store: Store, args: dict) -> dict:
         full = store.ensure_full()
         extra = []
         for it in full.values():
-            pl = (it.get("prompt") or "").lower()
-            if any(t in pl for t in terms):
+            hay = f"{it.get('prompt') or ''} {it.get('promptZh') or ''}".lower()
+            if any(t in hay for t in terms):
                 extra.append(it)
         extra.sort(key=lambda x: -int(x.get("hot") or 0))
         have = {e["id"] for e in results}

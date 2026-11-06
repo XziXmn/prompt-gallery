@@ -66,8 +66,9 @@ ZCode(`.zcode/mcp.json`)或 Claude Desktop(`claude_desktop_config.json`)加:
 3. push 到仓库(或 GitHub 网页端 Upload files 上传)。
 4. 下次 Sync Sources 自动收编:校验 → 去重 → 分类 → 上线。
 
-翻译更多标题(可选):`python scripts/translate_queue.py --make` 生成待翻译清单 →
-按 `grok-translate-prompt.txt` 让 Grok bot 翻译 → 结果存 `data/inbox/translations-*.json`。
+英文标题/提示词的中文翻译由 `scripts/translate_auto.py` 自动完成(免费翻译接口,
+断点续传,Actions 与本地均可跑,pipeline 中已自动调用)。想要更高质量的译文,
+可在本地跑 DeepSeek 版后 push 结果——**key 不需要也不建议放进 GitHub**。
 
 ## 常见问题
 
@@ -78,4 +79,16 @@ ZCode(`.zcode/mcp.json`)或 Claude Desktop(`claude_desktop_config.json`)加:
 | 定时任务没跑 | Actions 页手动 Run workflow 一次即恢复 |
 | 想改采集频率 | 改 `sync-sources.yml` 的 cron(注意上游 xtrend 每小时更新,6h 追赶足够) |
 | MCP 报数据加载失败 | 删掉项目下 `.cache/` 目录重试(缓存 TTL 30 分钟) |
-| 数据量会撑爆仓库吗 | 只存 JSON(约 40MB)且持续去重,Pages 上限 1GB,余量充足 |
+| 数据量会撑爆仓库吗 | 只存 JSON 且持续去重,Pages 上限 1GB,余量充足 |
+
+## 可选:部署到自己的服务器(日本 VPS 等)
+
+比 Pages 更快(国内直连)、图片走服务器本地缓存代理、不依赖 github.io。
+一条命令启动,数据每 30 分钟自动从 GitHub 同步,详见 [deploy/README.md](deploy/README.md):
+
+```bash
+git clone https://github.com/<你的用户名>/<仓库名>.git && cd <仓库名>/deploy
+docker compose up -d    # 站点 :8088 + 图片缓存代理 + 自动同步
+```
+
+GitHub Pages 可以保留作为免费备份入口,两者不冲突。

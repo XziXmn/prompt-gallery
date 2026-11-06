@@ -67,7 +67,7 @@
       .map((it) => {
         const title = it.tz || it.t || "";
         return `<div class="carousel-slide" data-id="${esc(it.id)}">
-          <img src="${esc(it.img)}" alt="${esc(title)}"
+          <img src="${esc(window.PG.imgSrc(it.img))}" alt="${esc(title)}"
             onerror="this.onerror=null;this.src=window.PG_PLACEHOLDER">
           <div class="shade"></div>
           <div class="carousel-caption">
@@ -126,6 +126,7 @@
     if (!rest.length) { grid.closest("section").style.display = "none"; return; }
     grid.innerHTML = rest.map(cardHTML).join("");
     bindCards(grid, openLightbox);
+    window.PG.observeReveals(grid);
   }
 
   function renderCategories(stats) {
@@ -154,6 +155,7 @@
     const grid = document.getElementById("latestGrid");
     grid.innerHTML = latest.map(cardHTML).join("");
     bindCards(grid, openLightbox);
+    window.PG.observeReveals(grid);
   }
 
   document.addEventListener("DOMContentLoaded", () => init().catch((e) => console.error(e)));

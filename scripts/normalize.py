@@ -17,6 +17,8 @@ from taxonomy import OTHER, UNIFIED_CATEGORIES, classify  # noqa: E402
 
 OUT_PATH = DATA_DIR / "prompts.json"
 TRANSLATIONS_PATH = SOURCES_DIR / "translations.json"
+AUTO_TRANSLATIONS_PATH = SOURCES_DIR / "translations-auto.json"
+TRANSLATION_FILES = {"translations.json", "translations-auto.json", "inbox-ledger.json"}
 
 # 去重冲突时的源优先级(越小越优先保留)
 SOURCE_PRIORITY = ["canghe", "handbook", "david", "youmind", "gptimage2", "suxian", "xtrend", "inbox"]
@@ -39,12 +41,18 @@ def _richness(item: dict) -> int:
 
 def main() -> int:
     snapshots = sorted(SOURCES_DIR.glob("*.json")) if SOURCES_DIR.exists() else []
-    snapshots = [p for p in snapshots if p.name not in ("translations.json", "inbox-ledger.json")]
+    snapshots = [p for p in snapshots if p.name not in TRANSLATION_FILES]
 
-    translations: dict[str, str] = {}
-    if TRANSLATIONS_PATH.exists():
-        for t in json.loads(TRANSLATIONS_PATH.read_text(encoding="utf-8")).get("items") or []:
-            translations[t["id"]] = t["titleZh"]
+    # 翻译库:人工(Grok bot)+ 自动两条通道,合并为 {id: {titleZh, promptZh}}
+    translations: dict[str, dict] = {}
+    for tpath in (TRANSLATIONS_PATH, AUTO_TRANSLATIONS_PATH):
+        if tpath.exists():
+            for t in json.loads(tpath.read_text(encoding="utf-8")).get("items") or []:
+                rec = translations.setdefault(t.get("id") or "", {})
+                if t.get("titleZh"):
+                    rec["titleZh"] = t["titleZh"]
+                if t.get("promptZh"):
+                    rec["promptZh"] = t["promptZh"]
 
     by_key: dict[str, dict] = {}
     per_source: dict[str, int] = {}
@@ -68,10 +76,12 @@ def main() -> int:
             if not prompt:
                 continue
             title = (raw.get("title") or "").strip() or prompt[:40]
+            t12 = translations.get(f"{source_id}-{dedup_key(prompt)}") or {}
             item = {
                 "id": f"{source_id}-{dedup_key(prompt)}",
                 "title": title,
-                "titleZh": raw.get("titleZh") or translations.get(f"{source_id}-{dedup_key(prompt)}"),
+                "titleZh": raw.get("titleZh") or t12.get("titleZh"),
+                "promptZh": raw.get("promptZh") or t12.get("promptZh"),
                 "prompt": prompt,
                 "category": None,
                 "tags": [t for t in (raw.get("tags") or []) if t][:10],

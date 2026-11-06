@@ -404,7 +404,7 @@ button { font-family: inherit; }
   font-weight: 550; transition: all 0.15s;
 }
 .fchip:hover { color: var(--fg); background: rgba(24, 24, 27, 0.05); }
-.fchip.on { color: var(--fg); background: var(--fg); font-weight: 650; }
+.fchip.on { color: #fff; background: var(--fg); font-weight: 650; }
 [data-theme="dark"] .fchip.on { color: var(--card); }
 .fchip .n { opacity: 0.55; font-size: 11.5px; margin-left: 3px; }
 

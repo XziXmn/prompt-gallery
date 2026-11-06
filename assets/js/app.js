@@ -432,7 +432,7 @@
   function applyFilters(list) {
     let out = list.slice();
     const q = state.q.trim().toLowerCase();
-    if (state.tag) out = out.filter((e) => (e.tags || []).includes(state.tag));
+    // 注意:tag 筛选在 reflow 中基于原始条目完成(toIdx 映射体不含 tags)
     if (state.src) out = out.filter((e) => e.s === state.src);
     if (state.ref) out = out.filter((e) => e.nr);
     if (q) {

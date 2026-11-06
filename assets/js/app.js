@@ -452,7 +452,7 @@
   /* ============================================================
      画廊页(含子分类 tab)
      ============================================================ */
-  const state = { cat: null, tag: null, src: null, ref: false, q: "", sort: "hot", shown: 0, list: [] };
+  const state = { cat: null, tag: null, ref: false, q: "", sort: "hot", shown: 0, list: [] };
   const PAGE_SIZE = 60;
   const sliceCache = new Map(); // category -> items(完整字段)
 
@@ -489,7 +489,6 @@
     let out = list.slice();
     const q = state.q.trim().toLowerCase();
     // 注意:tag 筛选在 reflow 中基于原始条目完成(toIdx 映射体不含 tags)
-    if (state.src) out = out.filter((e) => e.s === state.src);
     if (state.ref) out = out.filter((e) => e.nr);
     if (q) {
       const full = window.__pgFullMap;
@@ -531,14 +530,12 @@
 
     const params = new URLSearchParams(location.search);
     state.cat = params.get("cat");
-    state.src = params.get("src");
     state.ref = params.get("ref") === "1";
     state.q = params.get("q") || "";
     state.tag = params.get("tag") || null;
     state.sort = params.get("sort") || "hot";
 
     renderCatChips();
-    renderSrcChips();
     const { raw } = await getWorkingList();
     renderSubChips(raw || []);
     syncControls();
@@ -571,24 +568,6 @@
       });
     }
 
-    function renderSrcChips() {
-      const row = document.getElementById("srcChips");
-      const sources = Object.entries(stats.perSource || {}).filter(([, n]) => n > 0)
-        .sort((a, b) => b[1] - a[1]);
-      row.innerHTML =
-        `<button class="fchip${state.src ? "" : " on"}" data-src="">全部来源</button>` +
-        sources.map(([s, n]) =>
-          `<button class="fchip${state.src === s ? " on" : ""}" data-src="${esc(s)}">${esc(SOURCE_NAMES[s] || s)}<span class="n">${n}</span></button>`
-        ).join("");
-      row.addEventListener("click", async (ev) => {
-        const btn = ev.target.closest("[data-src]");
-        if (!btn) return;
-        state.src = btn.dataset.src || null;
-        state.shown = 0;
-        syncControls(); reflow(); syncUrl();
-      });
-    }
-
     const subRow = document.getElementById("subChips");
     if (subRow) {
       subRow.addEventListener("click", (ev) => {
@@ -602,7 +581,6 @@
 
     function syncControls() {
       document.querySelectorAll("[data-cat]").forEach((b) => b.classList.toggle("on", (b.dataset.cat || null) === state.cat));
-      document.querySelectorAll("[data-src]").forEach((b) => b.classList.toggle("on", (b.dataset.src || null) === state.src));
       document.querySelectorAll("#subChips [data-tag]").forEach((b) => b.classList.toggle("on", (b.dataset.tag || null) === state.tag));
       document.getElementById("refToggle").checked = state.ref;
       document.querySelectorAll("#sortSegmented [data-sort]").forEach((b) => b.classList.toggle("on", b.dataset.sort === state.sort));
@@ -613,7 +591,6 @@
       const p = new URLSearchParams();
       if (state.cat) p.set("cat", state.cat);
       if (state.tag) p.set("tag", state.tag);
-      if (state.src) p.set("src", state.src);
       if (state.ref) p.set("ref", "1");
       if (state.q) p.set("q", state.q);
       if (state.sort !== "hot") p.set("sort", state.sort);

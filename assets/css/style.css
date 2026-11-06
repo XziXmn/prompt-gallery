@@ -390,7 +390,7 @@ button { font-family: inherit; }
 .card.reveal.in { opacity: 1; transform: translateY(0); }
 
 /* ---------- 画廊:毛玻璃悬浮筛选 ---------- */
-.filter-wrap { position: sticky; top: 76px; z-index: 30; padding: 12px 0 4px; }
+.filter-wrap { position: sticky; top: 64px; z-index: 30; padding: 0 0 4px; }
 .filter-wrap .glass {
   padding: 14px 18px; border-radius: var(--radius-lg);
   background: var(--card-glass);

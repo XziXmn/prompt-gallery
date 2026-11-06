@@ -163,6 +163,34 @@ KEYWORD_RULES: list[tuple[str, list[str]]] = [
 ]
 
 
+# 细分类显示映射:源站英文类目 → 中文(标签与筛选统一用中文)
+SUB_LABEL_MAP = {
+    "poster": "海报", "tech": "科技", "commerce": "商业", "ui": "界面", "realistic": "写实",
+    "fashion": "时尚", "illustration": "插画", "character": "角色", "brand": "品牌",
+    "travel": "旅行", "logo": "标志", "product": "产品", "advertising": "广告",
+    "infographic": "信息图", "game": "游戏", "portrait": "人像", "food": "美食",
+    "landscape": "风景", "architecture": "建筑", "document": "文档", "animation": "动画",
+    "video": "视频", "social media": "社媒", "social": "社媒", "print": "印刷",
+    "education": "教育", "sports": "体育", "music": "音乐", "nature": "自然",
+    "animal": "动物", "car": "汽车", "design": "设计", "marketing": "营销",
+    "photography": "摄影", "photo": "摄影", "art": "艺术", "other": "其他",
+    "others": "其他", "misc": "其他", "uncategorized": "未归类",
+}
+
+
+def normalize_sub(label: str | None) -> str | None:
+    """源站子分类 → 展示用标签:英文映射中文,其余原样保留(如 动漫or二次元)。"""
+    s = (label or "").strip()
+    if not s:
+        return None
+    low = s.lower()
+    if low in SUB_LABEL_MAP:
+        return SUB_LABEL_MAP[low]
+    if s in ("其他/未归类", "其他", "未归类"):
+        return "其他"
+    return s
+
+
 def classify(source_id: str, raw_category: str | None, title: str, prompt: str) -> tuple[str, str]:
     """返回 (统一分类, 命中规则说明)。"""
     # 第一级:映射表

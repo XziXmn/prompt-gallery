@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from common import DATA_DIR, SOURCES_DIR, dedup_key, detect_lang, engagement, log  # noqa: E402
-from taxonomy import OTHER, UNIFIED_CATEGORIES, classify  # noqa: E402
+from taxonomy import OTHER, UNIFIED_CATEGORIES, classify, normalize_sub  # noqa: E402
 
 OUT_PATH = DATA_DIR / "prompts.json"
 TRANSLATIONS_PATH = SOURCES_DIR / "translations.json"
@@ -100,10 +100,12 @@ def main() -> int:
                 "titleZh": raw.get("titleZh") or t12.get("titleZh"),
                 "promptZh": raw.get("promptZh") or t12.get("promptZh"),
                 # 源站原生子分类(卡片左上角彩色标签用)
-                "sub": (str(raw_cat).strip() or None) if raw_cat else None,
+                "sub": normalize_sub(raw_cat),
                 "prompt": prompt,
                 "category": None,
-                "tags": [t for t in (raw.get("tags") or []) if t][:10],
+                "tags": list(dict.fromkeys(
+                    (normalize_sub(t) or t) for t in (raw.get("tags") or []) if t
+                ))[:10],
                 "source": {
                     "id": source_id,
                     "name": meta.get("name") or source_id,
@@ -120,7 +122,7 @@ def main() -> int:
                 "ar": ar,
             }
             if raw.get("rawCategory") and raw.get("rawCategory") not in item["tags"]:
-                item["tags"].append(str(raw.get("rawCategory"))[:30])
+                item["tags"].append(str(normalize_sub(raw.get("rawCategory")))[:30])
             item["tags"] = item["tags"][:12]
 
             cat, rule = classify(source_id, raw.get("rawCategory"), title, prompt)

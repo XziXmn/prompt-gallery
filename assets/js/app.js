@@ -320,6 +320,10 @@
             <button class="btn secondary" data-act="fav">${svgWrap(ICONS.heart)} 收藏</button>
             <a class="btn secondary" data-act="src" target="_blank" rel="noreferrer" style="display:none">${svgWrap(ICONS.external)} 查看来源</a>
           </div>
+          <div class="lb-related" style="display:none">
+            <div class="lb-rel-head">同分类随机推荐 <span class="lb-rel-cat"></span></div>
+            <div class="lb-rel-row"></div>
+          </div>
         </div>
       </div>`;
     document.body.appendChild(lb);
@@ -371,6 +375,47 @@
     } else srcLink.style.display = "none";
     const favBtn = lb.querySelector('[data-act="fav"]');
     favBtn.innerHTML = svgWrap(ICONS.heart) + (favStore.has(id) ? " 已收藏" : " 收藏");
+    renderRelated(it, lb);
+  }
+
+  /** 同分类随机推荐:从已加载索引里捞 6 张,点击切换详情 */
+  async function renderRelated(it, lb) {
+    const wrap = lb.querySelector(".lb-related");
+    wrap.style.display = "none";
+    try {
+      const index = await window.PGData.getIndex();
+      const shuffle = (arr) => {
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = (Math.random() * (i + 1)) | 0;
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+      };
+      // 优先同子分类,不足再从同大类补齐
+      const sameSub = it.sub
+        ? shuffle(index.filter((e) => e.c === it.category && e.sub === it.sub && e.id !== it.id && e.img))
+        : [];
+      const sameCat = shuffle(
+        index.filter((e) => e.c === it.category && e.id !== it.id && e.img && !sameSub.includes(e))
+      );
+      const picks = [...sameSub.slice(0, 3), ...sameCat].slice(0, 6);
+      if (!picks.length) return;
+      wrap.querySelector(".lb-rel-cat").textContent = "· " + it.category;
+      const row = wrap.querySelector(".lb-rel-row");
+      row.innerHTML = picks
+        .map((p) => `
+          <button class="lb-rel-card" data-id="${esc(p.id)}">
+            <img loading="lazy" src="${esc(imgSrc(p.img))}" alt="${esc(p.tz || p.t)}"
+              ${p.ar ? `style="aspect-ratio:${(1 / p.ar).toFixed(4)}"` : ""}
+              onerror="this.onerror=null;this.src=window.PG_PLACEHOLDER">
+            <span class="lb-rel-title">${esc(p.tz || p.t)}</span>
+          </button>`)
+        .join("");
+      row.querySelectorAll(".lb-rel-card").forEach((c) =>
+        c.addEventListener("click", () => openLightbox(c.dataset.id))
+      );
+      wrap.style.display = "block";
+    } catch { /* 推荐失败不影响详情展示 */ }
   }
 
   function closeLightbox() {

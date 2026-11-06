@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>关于 · 提示词画廊</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="about">
+  <header class="site-header">
+    <div class="container inner">
+      <a class="logo" href="index.html">提示词画廊</a>
+      <nav class="nav">
+        <a href="index.html" data-nav="home">首页</a>
+        <a href="gallery.html" data-nav="gallery">画廊</a>
+        <a href="favorites.html" data-nav="favorites">收藏</a>
+        <a href="about.html" data-nav="about">关于</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container prose">
+    <h2>这是什么</h2>
+    <p>一个多渠道自动聚合的 GPT Image 2 提示词画廊。GitHub Actions 定时从各公开来源同步数据,
+      去重、自动分类、汉化标题后生成静态数据文件;网站纯前端渲染,托管在 GitHub Pages,零服务器。</p>
+
+    <h2>数据来源</h2>
+    <table id="sourceTable">
+      <thead><tr><th>来源</th><th>条数</th><th>说明</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p>所有提示词均来自公开分享渠道,仅供学习交流,版权归原作者所有;
+      各来源的许可与署名详见仓库 <code>ATTRIBUTION.md</code>,如有侵权请提交 issue 移除。</p>
+
+    <h2>更新机制</h2>
+    <p>每 6 小时自动同步一次各源;X 热门通道每小时由上游更新。
+      全部数据以 JSON 形式存于仓库 <code>data/</code> 目录,任何 AI 都可以通过
+      <code>AI.md</code> 中的约定直接检索,也可以用仓库自带的 MCP server 接入你自己的 AI 客户端。</p>
+
+    <h2>统计</h2>
+    <div class="stats-bar" id="statsBar" style="margin-top:0"></div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container inner">
+      <span>提示词画廊 · 数据每 6 小时自动更新</span>
+    </div>
+  </footer>
+
+  <script src="assets/js/data-loader.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const SOURCE_NOTES = {
+        canghe: "苍何 GPT-Image2 Gallery(①号站后端仓库)",
+        suxian: "水仙的AI提示词(个人精选,仅供学习交流)",
+        david: "Awesome GPT-Image-2 Prompts 单页站",
+        handbook: "GPT-Image-2 提示词实战手册(xianyu110)",
+        xtrend: "X 热门提示词(上游每小时自动采集,含原推链接)",
+        youmind: "YouMind Awesome GPT-Image-2(CC BY 4.0)",
+        gptimage2: "awesome-gptimage2-prompts(gpt-image2 org)",
+        inbox: "收件箱(人工投喂:Grok bot 采集 / 翻译)",
+      };
+      const stats = await window.PGData.getStats();
+      const tb = document.querySelector("#sourceTable tbody");
+      tb.innerHTML = Object.entries(stats.perSource || {})
+        .filter(([, n]) => n > 0)
+        .sort((a, b) => b[1] - a[1])
+        .map(([s, n]) => `<tr><td>${window.PG.esc(window.PG.SOURCE_NAMES[s] || s)}</td><td>${n}</td><td>${window.PG.esc(SOURCE_NOTES[s] || "")}</td></tr>`)
+        .join("");
+      document.getElementById("statsBar").innerHTML = `
+        <div class="item"><div class="num">${stats.total}</div><div class="lbl">提示词</div></div>
+        <div class="item"><div class="num">${stats.images}</div><div class="lbl">效果图</div></div>
+        <div class="item"><div class="num">${Object.entries(stats.perSource || {}).filter(([, n]) => n > 0).length}</div><div class="lbl">来源渠道</div></div>
+        <div class="item"><div class="num">${window.PG.esc((stats.generatedAt || "").slice(0, 16).replace("T", " "))}</div><div class="lbl">最近更新(UTC)</div></div>`;
+    });
+  </script>
+</body>
+</html>

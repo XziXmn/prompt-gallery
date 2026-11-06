@@ -1,0 +1,15 @@
+{
+  "type": "prompts",
+  "items": [
+    {
+      "title": "极简手绘涂鸦创意广告",
+      "prompt": "A minimalist and creative advertisement set on a pure white background. A real [real object] combined with hand-drawn black ink doodles, with loose and playful lines. Add bold black [ad copy] text at the top or center. The visual should be clean, fun, high-contrast, and cleverly conceived.",
+      "tags": ["涂鸦", "广告"],
+      "author": "@example_ai",
+      "image": "https://example.com/effect.jpg",
+      "sourceUrl": "https://x.com/example_ai/status/1234567890",
+      "createdAt": "2026-05-01",
+      "needsReference": false
+    }
+  ]
+}

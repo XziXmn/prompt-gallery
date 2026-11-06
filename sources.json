@@ -1,0 +1,56 @@
+{
+  "sources": {
+    "canghe": {
+      "enabled": true,
+      "name": "苍何 GPT-Image2 Gallery",
+      "collector": "col_canghe.py",
+      "repo": "freestylefly/awesome-gpt-image-2",
+      "note": "①号站 gpt-image2.canghe.ai 的后端数据仓库"
+    },
+    "suxian": {
+      "enabled": true,
+      "name": "水仙的AI提示词",
+      "collector": "col_suxian.py",
+      "site": "https://prompt.qqsrc.com/",
+      "note": "个人精选画廊(6011条),仅供学习交流,可在下方一键停用"
+    },
+    "david": {
+      "enabled": true,
+      "name": "Awesome GPT-Image-2 Prompts (davidwuw0811)",
+      "collector": "col_david.py",
+      "site": "https://davidwuw0811-boop.github.io/awesome-gpt-image2-prompts/"
+    },
+    "handbook": {
+      "enabled": true,
+      "name": "GPT-Image-2 实战手册 (xianyu110)",
+      "collector": "col_handbook.py",
+      "repo": "xianyu110/awesome-gptimage2"
+    },
+    "xtrend": {
+      "enabled": true,
+      "name": "X 热门提示词 (via xianyu110 自动采集)",
+      "collector": "col_xtrend.py",
+      "repo": "xianyu110/awesome-gptimage2",
+      "note": "该仓库每小时自动从 X 抓取的 GPT Image 2 热门提示词,免费 X 通道"
+    },
+    "youmind": {
+      "enabled": true,
+      "name": "YouMind Awesome GPT-Image-2",
+      "collector": "col_youmind.py",
+      "repo": "YouMind-OpenLab/awesome-gpt-image-2",
+      "license": "CC BY 4.0"
+    },
+    "gptimage2": {
+      "enabled": true,
+      "name": "awesome-gptimage2-prompts (gpt-image2 org)",
+      "collector": "col_gptimage2.py",
+      "repo": "gpt-image2/awesome-gptimage2-prompts"
+    },
+    "inbox": {
+      "enabled": true,
+      "name": "收件箱(Grok bot 采集 / 翻译)",
+      "collector": "col_inbox.py",
+      "note": "人工触发:用 grok-collect-prompt.txt 采集后把 JSON 丢进 data/inbox/"
+    }
+  }
+}

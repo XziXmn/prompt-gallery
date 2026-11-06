@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>提示词画廊 · GPT Image 2 精选提示词聚合</title>
+  <meta name="description" content="多渠道聚合的 GPT Image 2 提示词画廊:精选案例、分类导航、一键复制,支持 AI 检索。">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body data-page="home">
+  <header class="site-header">
+    <div class="container inner">
+      <a class="logo" href="index.html">提示词画廊</a>
+      <nav class="nav">
+        <a href="index.html" data-nav="home">首页</a>
+        <a href="gallery.html" data-nav="gallery">画廊</a>
+        <a href="favorites.html" data-nav="favorites">收藏</a>
+        <a href="about.html" data-nav="about">关于</a>
+      </nav>
+      <div class="header-right">
+        <span class="gh-link" id="ghLinkWrap"></span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero container">
+      <h1>把爆款图片变成可复用的提示词</h1>
+      <p class="sub">多渠道自动聚合 GPT Image 2 精选提示词:浏览真实案例、一键复制、按需检索,还有专为 AI 准备的数据接口。</p>
+      <div class="hero-search">
+        <input id="heroSearch" type="search" placeholder="搜索提示词、风格、场景…(如:海报、手办、古风)">
+        <button class="btn" id="heroSearchBtn">搜索</button>
+        <a class="btn secondary" href="gallery.html">浏览全部</a>
+      </div>
+    </section>
+
+    <section class="carousel-section container">
+      <div class="carousel" id="carousel">
+        <div class="carousel-track" id="carouselTrack"></div>
+        <button class="carousel-arrow prev" title="上一张">‹</button>
+        <button class="carousel-arrow next" title="下一张">›</button>
+        <div class="carousel-dots" id="carouselDots"></div>
+      </div>
+    </section>
+
+    <section class="container" id="featuredSection">
+      <div class="section-head">
+        <h2>✨ 精选推荐</h2>
+        <a class="more" href="gallery.html?sort=hot">查看更多热门 →</a>
+      </div>
+      <div class="waterfall" id="featuredStrip"></div>
+    </section>
+
+    <section class="container">
+      <div class="section-head">
+        <h2>📂 按分类浏览</h2>
+        <a class="more" href="gallery.html">全部分类 →</a>
+      </div>
+      <div class="cat-grid" id="catGrid"></div>
+    </section>
+
+    <section class="container">
+      <div class="section-head">
+        <h2>🆕 最新入库</h2>
+        <a class="more" href="gallery.html?sort=new">查看全部 →</a>
+      </div>
+      <div class="waterfall" id="latestGrid"></div>
+    </section>
+
+    <section class="container">
+      <div class="stats-bar" id="statsBar"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container inner">
+      <span>提示词内容来自公开分享,仅供学习交流,版权归原作者所有 · 详见<a href="about.html">关于与来源</a></span>
+      <span>GitHub Actions 自动聚合 · GitHub Pages 托管</span>
+    </div>
+  </footer>
+
+  <script src="assets/js/data-loader.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/home.js"></script>
+</body>
+</html>

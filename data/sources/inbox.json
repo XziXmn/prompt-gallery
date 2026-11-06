@@ -1,0 +1,1 @@
+{"source": {"id": "inbox", "name": "收件箱(人工投喂)", "url": "https://github.com/", "note": "用 grok-collect-prompt.txt / grok-translate-prompt.txt 采集后放入 data/inbox/"}, "items": []}

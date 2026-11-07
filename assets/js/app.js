@@ -403,18 +403,28 @@
     const lbNavNext = lb.querySelector(".lb-nav.next");
     const setImg = (i) => {
       const u = imgList[i % imgList.length];
+      // 加载反馈:切图立即变暗,加载完成恢复——避免"点了没反应"的观感
+      mainImg.classList.add("lb-loading");
+      mainImg.onload = () => mainImg.classList.remove("lb-loading");
+      mainImg.onerror = () => { mainImg.src = PLACEHOLDER; mainImg.classList.remove("lb-loading"); };
       mainImg.src = imgSrc(u) || PLACEHOLDER;
       thumbs.querySelectorAll(".lb-thumb").forEach((t, ti) => t.classList.toggle("on", ti === i));
       lbNavIdx = i;
     };
     if (imgList.length > 1) {
       thumbs.style.display = "flex";
+      // button 包裹:语义正确、不可拖拽、加载失败整颗隐藏——裸 img 在加载中点击不可靠
       thumbs.innerHTML = imgList
-        .map((u, i) => `<img class="lb-thumb${i === 0 ? " on" : ""}" src="${esc(imgSrc(u))}" fetchpriority="low" onerror="this.style.display='none'">`)
+        .map((u, i) => `
+          <button class="lb-thumb${i === 0 ? " on" : ""}" data-i="${i}" title="第 ${i + 1} 张">
+            <img src="${esc(imgSrc(u))}" alt="" draggable="false"
+              onerror="this.remove(); this.parentNode.classList.add('dead')">
+          </button>`)
         .join("");
-      thumbs.querySelectorAll(".lb-thumb").forEach((t, i) =>
-        t.addEventListener("click", () => setImg(i))
-      );
+      thumbs.onclick = (ev) => {
+        const b = ev.target.closest(".lb-thumb");
+        if (b) setImg(Number(b.dataset.i));
+      };
       // 主图左右切换箭头
       lbNavPrev.style.display = "flex";
       lbNavNext.style.display = "flex";

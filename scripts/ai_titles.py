@@ -57,14 +57,26 @@ def save_store(store: dict) -> None:
 
 
 def chat(messages: list[dict], temperature: float = 0.3) -> str:
+    import urllib.error
+
     body = json.dumps({"model": API_MODEL, "messages": messages, "temperature": temperature}).encode("utf-8")
-    req = urllib.request.Request(
-        f"{API_BASE}/chat/completions", data=body, method="POST",
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer {API_KEY}"},
-    )
-    with urllib.request.urlopen(req, timeout=120) as resp:
-        data = json.loads(resp.read().decode("utf-8"))
-    return data["choices"][0]["message"]["content"]
+    last_err = None
+    for attempt in range(4):
+        try:
+            req = urllib.request.Request(
+                f"{API_BASE}/chat/completions", data=body, method="POST",
+                headers={"Content-Type": "application/json", "Authorization": f"Bearer {API_KEY}"},
+            )
+            with urllib.request.urlopen(req, timeout=120) as resp:
+                data = json.loads(resp.read().decode("utf-8"))
+            content = data["choices"][0]["message"]["content"]
+            if content:
+                return content
+            last_err = RuntimeError("空响应")
+        except Exception as err:  # noqa: BLE001 — 网络与服务端 5xx 统一退避重试
+            last_err = err
+        time.sleep((5, 15, 45, 90)[min(attempt, 3)])
+    raise RuntimeError(f"接口连续失败: {last_err}")
 
 
 def parse_json_block(text: str):

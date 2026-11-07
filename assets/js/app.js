@@ -192,60 +192,52 @@
 
   const gridMaps = new WeakMap();   // container -> Map(id -> element)
   const activeGrids = new Map();    // container -> {items, onItemClick}(供 resize 重排)
-  const realH = new WeakMap();      // 卡片元素 -> 实测高度(图片加载后回填)
   let resizeTimer = null;
 
-  function masonryPlace(container, map, items) {
-    const width = container.clientWidth || container.parentElement.clientWidth || 800;
-    const minCol = 236, gap = 16;
-    const cols = Math.max(2, Math.min(5, Math.floor((width + gap) / (minCol + gap))));
-    // 离线构建列结构,replaceChildren 原子替换——页面高度不塌陷,滚动位置稳定
-    const colEls = [];
-    const colH = new Array(cols).fill(0);
-    const frag = document.createDocumentFragment();
-    for (let i = 0; i < cols; i++) {
-      const d = document.createElement("div");
-      d.className = "m-col";
-      frag.appendChild(d);
-      colEls.push(d);
-    }
-    const colW = (width - gap * (cols - 1)) / cols;
-    items.forEach((it, idx) => {
-      const el = map.get(it.id);
-      // 优先用实测高度(图片加载后回填),否则按宽高比估算
-      const measured = realH.get(el);
-      const estH = measured || colW * (it.ar || 1.28) + 92;
-      let target = 0;
-      for (let i = 1; i < cols; i++) if (colH[i] < colH[target]) target = i;
-      if (idx < cols) target = idx;   // 首行每列保底一张
-      colEls[target].appendChild(el);
-      colH[target] += estH;
-    });
-    container.replaceChildren(frag);
-  }
+  /**
+   * Justified 布局(Google Photos 式):每行贪心填充到容器宽,整行等高缩放,
+   * 行底天然齐平——底部参差问题由构造消除。真实 ar(94% 覆盖)纯计算,零测量零重排。
+   */
+  function justifyPlace(container, map, items) {
+    const W = container.clientWidth || container.parentElement.clientWidth || 800;
+    const gap = 12;
+    const targetH = W < 640 ? 160 : W < 1000 ? 215 : 250;
 
-  /** 图片全部就位后实测卡片高度并重排一次——消除估算误差,底部对齐。 */
-  function rebalanceWhenSettled(container, map, items) {
-    const imgs = Array.from(container.querySelectorAll("img"));
-    const pending = imgs
-      .filter((i) => !i.complete)
-      .map((i) => new Promise((res) => {
-        i.addEventListener("load", res, { once: true });
-        i.addEventListener("error", res, { once: true });
-        setTimeout(res, 8000);   // 兜底:个别图床挂起也不阻塞
-      }));
-    (pending.length ? Promise.all(pending) : Promise.resolve()).then(() => {
-      if (!container.isConnected) return;
-      items.forEach((it) => {
+    // 贪心分行
+    const rows = [];
+    let row = [], sumAr = 0;
+    for (const it of items) {
+      const ar = it.ar || 1.3;
+      row.push({ it, ar });
+      sumAr += ar;
+      if (sumAr * targetH + gap * (row.length - 1) >= W && row.length >= 2) {
+        rows.push({ list: row, sumAr, last: false });
+        row = []; sumAr = 0;
+      }
+    }
+    if (row.length) rows.push({ list: row, sumAr, last: true });
+
+    // 建行:满行缩放到精确容器宽;末行不强行拉伸超高(上限 1.18 倍,超出左对齐)
+    const frag = document.createDocumentFragment();
+    for (const r of rows) {
+      const rowEl = document.createElement("div");
+      rowEl.className = "j-row";
+      const gaps = gap * (r.list.length - 1);
+      let rowH = targetH;
+      if (r.sumAr > 0) {
+        const scaledH = (W - gaps) / r.sumAr;
+        if (!r.last || scaledH <= targetH * 1.18) rowH = Math.min(scaledH, targetH * 1.6);
+      }
+      for (const { it, ar } of r.list) {
         const el = map.get(it.id);
-        if (!el || !el.isConnected) return;
-        // 无 ar 且图未加载的卡,高度还没定型(占位塌陷),不缓存错误实测值
-        const img = el.querySelector("img");
-        const pendingNoAr = img && !img.complete && !img.style.aspectRatio;
-        if (!pendingNoAr) realH.set(el, el.offsetHeight);
-      });
-      masonryPlace(container, map, items);   // 节点移动,同 src 不重载、不闪
-    });
+        const w = Math.min(ar * rowH, W);
+        el.style.width = Math.round(w) + "px";
+        el.querySelector(".thumb").style.height = Math.round(rowH) + "px";
+        rowEl.appendChild(el);
+      }
+      frag.appendChild(rowEl);
+    }
+    container.replaceChildren(frag);
   }
 
   /**
@@ -274,7 +266,7 @@
       let el = map.get(it.id);
       if (!el) { el = cardEl(it); map.set(it.id, el); newEls.push(el); }
     }
-    masonryPlace(container, map, items);
+    justifyPlace(container, map, items);
 
     // 兜底:接进文档后已加载完但未标记的图(碎片树中 src 竞态),立即淡入
     container.querySelectorAll("img:not(.ok)").forEach((img) => {
@@ -309,14 +301,13 @@
     });
 
     activeGrids.set(container, { items, onItemClick });
-    if (newEls.length) rebalanceWhenSettled(container, map, items);
 
     if (!resizeTimer) {
       window.addEventListener("resize", () => {
         clearTimeout(resizeTimer);
         resizeTimer = setTimeout(() => {
           for (const [c, info] of activeGrids) {
-            if (c.isConnected) masonryPlace(c, gridMaps.get(c), info.items);
+            if (c.isConnected) justifyPlace(c, gridMaps.get(c), info.items);
           }
         }, 180);
       }, { passive: true, once: false });

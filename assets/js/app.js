@@ -354,7 +354,7 @@
             <a class="btn secondary" data-act="src" target="_blank" rel="noreferrer" style="display:none">${svgWrap(ICONS.external)} 查看来源</a>
           </div>
           <div class="lb-related" style="display:none">
-            <div class="lb-rel-head">同类推荐 <span class="lb-rel-cat"></span></div>
+            <div class="lb-rel-head"><span>同类推荐</span><span class="lb-rel-sep">·</span><span class="lb-rel-cat"></span></div>
             <div class="lb-rel-row"></div>
           </div>
         </div>
@@ -471,8 +471,7 @@
       );
       const picks = [...sameSub.slice(0, 4), ...sameCat].slice(0, 8);
       if (!picks.length) return;
-      wrap.querySelector(".lb-rel-cat").textContent = "· " + it.category;
-      wrap.querySelector(".lb-rel-head").firstChild.textContent = "同类推荐 ";
+      wrap.querySelector(".lb-rel-cat").textContent = it.category;
       const row = wrap.querySelector(".lb-rel-row");
       // 双列瀑布流:按估算高度分配到较矮列,超出容器高度纵向滚动
       row.innerHTML = '<div class="m-col"></div><div class="m-col"></div>';
@@ -484,7 +483,6 @@
         el.dataset.id = p.id;
         el.innerHTML = `
           <img src="${esc(imgSrc(p.img))}" alt="${esc(p.tz || p.t)}"
-            ${p.ar ? `style="aspect-ratio:${(1 / p.ar).toFixed(4)}"` : ""}
             onerror="this.onerror=null;this.src=window.PG_PLACEHOLDER">
           <span class="lb-rel-title">${esc(p.tz || p.t)}</span>`;
         const t = colH[0] <= colH[1] ? 0 : 1;

@@ -192,6 +192,7 @@
 
   const gridMaps = new WeakMap();   // container -> Map(id -> element)
   const activeGrids = new Map();    // container -> {items, onItemClick}(供 resize 重排)
+  const realH = new WeakMap();      // 卡片元素 -> 实测高度(图片加载后回填)
   let resizeTimer = null;
 
   function masonryPlace(container, map, items) {
@@ -211,7 +212,9 @@
     const colW = (width - gap * (cols - 1)) / cols;
     items.forEach((it, idx) => {
       const el = map.get(it.id);
-      const estH = colW * (it.ar || 1.28) + 92;   // 有真实宽高比时精确分列
+      // 优先用实测高度(图片加载后回填),否则按宽高比估算
+      const measured = realH.get(el);
+      const estH = measured || colW * (it.ar || 1.28) + 92;
       let target = 0;
       for (let i = 1; i < cols; i++) if (colH[i] < colH[target]) target = i;
       if (idx < cols) target = idx;   // 首行每列保底一张
@@ -219,6 +222,30 @@
       colH[target] += estH;
     });
     container.replaceChildren(frag);
+  }
+
+  /** 图片全部就位后实测卡片高度并重排一次——消除估算误差,底部对齐。 */
+  function rebalanceWhenSettled(container, map, items) {
+    const imgs = Array.from(container.querySelectorAll("img"));
+    const pending = imgs
+      .filter((i) => !i.complete)
+      .map((i) => new Promise((res) => {
+        i.addEventListener("load", res, { once: true });
+        i.addEventListener("error", res, { once: true });
+        setTimeout(res, 8000);   // 兜底:个别图床挂起也不阻塞
+      }));
+    (pending.length ? Promise.all(pending) : Promise.resolve()).then(() => {
+      if (!container.isConnected) return;
+      items.forEach((it) => {
+        const el = map.get(it.id);
+        if (!el || !el.isConnected) return;
+        // 无 ar 且图未加载的卡,高度还没定型(占位塌陷),不缓存错误实测值
+        const img = el.querySelector("img");
+        const pendingNoAr = img && !img.complete && !img.style.aspectRatio;
+        if (!pendingNoAr) realH.set(el, el.offsetHeight);
+      });
+      masonryPlace(container, map, items);   // 节点移动,同 src 不重载、不闪
+    });
   }
 
   /**
@@ -282,6 +309,7 @@
     });
 
     activeGrids.set(container, { items, onItemClick });
+    if (newEls.length) rebalanceWhenSettled(container, map, items);
 
     if (!resizeTimer) {
       window.addEventListener("resize", () => {
@@ -326,7 +354,7 @@
             <a class="btn secondary" data-act="src" target="_blank" rel="noreferrer" style="display:none">${svgWrap(ICONS.external)} 查看来源</a>
           </div>
           <div class="lb-related" style="display:none">
-            <div class="lb-rel-head">同分类随机推荐 <span class="lb-rel-cat"></span></div>
+            <div class="lb-rel-head">同类推荐 <span class="lb-rel-cat"></span></div>
             <div class="lb-rel-row"></div>
           </div>
         </div>
@@ -358,6 +386,7 @@
     const lb = ensureLightbox();
     lb.classList.add("open");
     promptLang = "orig";
+    lb.querySelector(".txt-side").scrollTop = 0;   // 换条目回顶部,防止推荐区被"顶裁"
     lb.querySelector("h3").textContent = "加载中…";
     lb.querySelector(".prompt-box").textContent = "";
     const it = await window.PGData.getItem(id);
@@ -443,6 +472,7 @@
       const picks = [...sameSub.slice(0, 4), ...sameCat].slice(0, 8);
       if (!picks.length) return;
       wrap.querySelector(".lb-rel-cat").textContent = "· " + it.category;
+      wrap.querySelector(".lb-rel-head").firstChild.textContent = "同类推荐 ";
       const row = wrap.querySelector(".lb-rel-row");
       // 双列瀑布流:按估算高度分配到较矮列,超出容器高度纵向滚动
       row.innerHTML = '<div class="m-col"></div><div class="m-col"></div>';

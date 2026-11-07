@@ -141,13 +141,13 @@
     const picks = [];
     for (const e of shuffled) {
       const c = usedCats[e.c] || 0;
-      if (c >= 2) continue;
+      if (c >= 3) continue;
       usedCats[e.c] = c + 1;
       picks.push(e);
-      if (picks.length >= 10) break;
+      if (picks.length >= 12) break;   // 4 列 × 3 张,凑整避免列尾缺口
     }
-    if (picks.length < 10) {
-      picks.push(...shuffled.filter((e) => !picks.includes(e)).slice(0, 10 - picks.length));
+    if (picks.length < 12) {
+      picks.push(...shuffled.filter((e) => !picks.includes(e)).slice(0, 12 - picks.length));
     }
     return picks;
   }

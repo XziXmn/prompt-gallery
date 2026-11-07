@@ -36,6 +36,8 @@ def main() -> int:
             {
                 "title": (c.get("title") or "").strip(),
                 "titleZh": (c.get("title") or "").strip() or None,
+                "descriptionZh": (c.get("descriptionZh") or "").strip() or None,
+                "description": (c.get("description") or "").strip() or None,
                 "prompt": prompt,
                 "rawCategory": c.get("categoryZh") or c.get("category"),
                 "tags": [s for s in (c.get("styles") or []) if s]

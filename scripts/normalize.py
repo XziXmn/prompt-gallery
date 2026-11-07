@@ -7,13 +7,14 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from common import DATA_DIR, SOURCES_DIR, dedup_key, detect_lang, engagement, log  # noqa: E402
+from common import DATA_DIR, SOURCES_DIR, dedup_key, detect_lang, engagement, log, norm_text  # noqa: E402
 from taxonomy import OTHER, UNIFIED_CATEGORIES, classify, normalize_sub  # noqa: E402
 
 OUT_PATH = DATA_DIR / "prompts.json"
@@ -83,6 +84,17 @@ def main() -> int:
             if not prompt:
                 continue
             title = (raw.get("title") or "").strip() or prompt[:40]
+            # 标题与正文混同检测:标题就是提示词开头(上游常见脏数据)→ 用摘要字段替代
+            _np, _nt = norm_text(prompt), norm_text(title)
+            if _nt and _np.startswith(_nt[:20]):
+                desc = (raw.get("descriptionZh") or "").strip() or (raw.get("description") or "").strip()
+                if desc and not norm_text(prompt).startswith(norm_text(desc)[:20]):
+                    title = desc
+                else:
+                    # 无摘要可用:取第一个自然句作短标题,缓解与正文混同
+                    first = re.split(r"[。;；!！?？\n]", title, 1)[0].strip()
+                    if 4 <= len(first) <= 40:
+                        title = first
             if len(title) > 80:  # 个别源站把整段提示词存成标题,截断防撑爆版面
                 title = title[:80].rstrip() + "…"
             t12 = translations.get(f"{source_id}-{dedup_key(prompt)}") or {}

@@ -61,6 +61,7 @@ def main() -> int:
             {
                 "title": (it.get("title") or "").strip(),
                 "titleZh": _pick_zh(it.get("translatedContent")),
+                "description": (it.get("description") or "").strip() or None,
                 "prompt": prompt,
                 "rawCategory": (cats[0] if cats else None),
                 "tags": cats[1:],

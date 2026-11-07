@@ -502,8 +502,11 @@
       row.querySelectorAll(".lb-rel-card").forEach((c) =>
         c.addEventListener("click", () => openLightbox(c.dataset.id))
       );
-      row.scrollTop = 0;
+      // 归零必须在恢复显示之后:display:none 期间没有布局,scrollTop 赋值是空操作,
+      // 旧滚动位置会被浏览器带回来(表现为滚动条从中间开始)
       wrap.style.display = "flex";
+      row.scrollTop = 0;
+      requestAnimationFrame(() => { row.scrollTop = 0; });
     } catch { /* 推荐失败不影响详情展示 */ }
   }
 

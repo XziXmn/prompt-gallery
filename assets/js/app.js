@@ -306,7 +306,7 @@
       <button class="lb-close" title="关闭">${svgWrap(ICONS.close)}</button>
       <div class="box">
         <div class="lb-handle"></div>
-        <div class="img-side"><img alt=""></div>
+        <div class="img-side"><img alt=""><div class="lb-thumbs" style="display:none"></div></div>
         <div class="txt-side">
           <h3></h3>
           <div class="lb-meta"></div>
@@ -358,12 +358,36 @@
     if (!it) { lb.querySelector("h3").textContent = "条目不存在"; return; }
     currentLightboxItem = it;
     lb.querySelector("h3").textContent = it.titleZh || it.title || "";
-    lb.querySelector(".img-side img").src = imgSrc(it.image) || PLACEHOLDER;
+    // 多图:主图 + 缩略图条切换
+    const imgList = [it.image, ...(it.images || [])]
+      .filter(Boolean)
+      .filter((u, i, a) => a.indexOf(u) === i);
+    const mainImg = lb.querySelector(".img-side img");
+    const thumbs = lb.querySelector(".lb-thumbs");
+    const setImg = (i) => {
+      const u = imgList[i % imgList.length];
+      mainImg.src = imgSrc(u) || PLACEHOLDER;
+      thumbs.querySelectorAll(".lb-thumb").forEach((t, ti) => t.classList.toggle("on", ti === i));
+    };
+    if (imgList.length > 1) {
+      thumbs.style.display = "flex";
+      thumbs.innerHTML = imgList
+        .map((u, i) => `<img class="lb-thumb${i === 0 ? " on" : ""}" loading="lazy" src="${esc(imgSrc(u))}" onerror="this.style.display='none'">`)
+        .join("");
+      thumbs.querySelectorAll(".lb-thumb").forEach((t, i) =>
+        t.addEventListener("click", () => setImg(i))
+      );
+    } else {
+      thumbs.style.display = "none";
+      thumbs.innerHTML = "";
+    }
+    setImg(0);
     lb.querySelector(".lb-meta").innerHTML = `
       <span class="chip cat">${esc(it.category)}</span>
       ${it.sub ? `<span class="chip">${esc(it.sub)}</span>` : ""}
       <span class="chip src">${esc((it.source && it.source.name) || "")}</span>
       ${it.author ? `<span class="chip">${esc(it.author)}</span>` : ""}
+      ${imgList.length > 1 ? `<span class="chip ref">多图 · ${imgList.length}</span>` : ""}
       ${it.needsReference ? '<span class="chip ref">需参考图</span>' : ""}`;
     const toolbar = lb.querySelector(".prompt-toolbar");
     toolbar.style.display = it.promptZh ? "flex" : "none";

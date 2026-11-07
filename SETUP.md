@@ -67,8 +67,25 @@ ZCode(`.zcode/mcp.json`)或 Claude Desktop(`claude_desktop_config.json`)加:
 4. 下次 Sync Sources 自动收编:校验 → 去重 → 分类 → 上线。
 
 英文标题/提示词的中文翻译由 `scripts/translate_auto.py` 自动完成(免费翻译接口,
-断点续传,Actions 与本地均可跑,pipeline 中已自动调用)。想要更高质量的译文,
-可在本地跑 DeepSeek 版后 push 结果——**key 不需要也不建议放进 GitHub**。
+断点续传,Actions 与本地均可跑,pipeline 中已自动调用)。
+
+## 可选:AI 标题生成与高质量翻译(DeepSeek 等)
+
+无标题/标题混同的条目由 AI 生成中文短标题,超长英文提示词由 AI 补翻译。
+**key 只放本地环境变量,绝不写入仓库;提交到 git 的只有译文结果**:
+
+```bash
+export AI_API_KEY=sk-xxx                        # DeepSeek 或任意 OpenAI 兼容中转
+export AI_BASE_URL=https://api.deepseek.com     # 可选
+export AI_MODEL=deepseek-chat                   # 可选
+
+python scripts/ai_titles.py --dry-run   # 先预览待处理量
+python scripts/ai_titles.py             # 全量(断点续传,可 --limit 分批)
+python scripts/pipeline.py              # 重跑合并进正式数据
+git add data && git commit -m "data: AI 标题/翻译" && git push
+```
+
+费用参考:全量一轮(168 标题 + 140 长文)约 100 万字符输入,DeepSeek 价格下约 ¥1-2。
 
 ## 常见问题
 

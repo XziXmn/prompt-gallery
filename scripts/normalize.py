@@ -20,8 +20,9 @@ from taxonomy import OTHER, UNIFIED_CATEGORIES, classify, normalize_sub  # noqa:
 OUT_PATH = DATA_DIR / "prompts.json"
 TRANSLATIONS_PATH = SOURCES_DIR / "translations.json"
 AUTO_TRANSLATIONS_PATH = SOURCES_DIR / "translations-auto.json"
+AI_TITLES_PATH = SOURCES_DIR / "ai-titles.json"
 DIMS_PATH = SOURCES_DIR / "img-dims.json"
-TRANSLATION_FILES = {"translations.json", "translations-auto.json", "inbox-ledger.json", "img-dims.json"}
+TRANSLATION_FILES = {"translations.json", "translations-auto.json", "ai-titles.json", "inbox-ledger.json", "img-dims.json"}
 
 # 去重冲突时的源优先级(越小越优先保留)
 SOURCE_PRIORITY = ["canghe", "handbook", "david", "youmind", "gptimage2", "suxian", "xtrend", "inbox"]
@@ -46,12 +47,14 @@ def main() -> int:
     snapshots = sorted(SOURCES_DIR.glob("*.json")) if SOURCES_DIR.exists() else []
     snapshots = [p for p in snapshots if p.name not in TRANSLATION_FILES]
 
-    # 翻译库:人工(Grok bot)+ 自动两条通道,合并为 {id: {titleZh, promptZh}}
+    # 翻译库:人工(Grok bot)+ 自动(gtx)+ AI 生成三条通道,合并为 {id: {...}}
     translations: dict[str, dict] = {}
-    for tpath in (TRANSLATIONS_PATH, AUTO_TRANSLATIONS_PATH):
+    for tpath in (TRANSLATIONS_PATH, AUTO_TRANSLATIONS_PATH, AI_TITLES_PATH):
         if tpath.exists():
             for t in json.loads(tpath.read_text(encoding="utf-8")).get("items") or []:
                 rec = translations.setdefault(t.get("id") or "", {})
+                if t.get("title"):
+                    rec["title"] = t["title"]           # AI 生成的中文短标题
                 if t.get("titleZh"):
                     rec["titleZh"] = t["titleZh"]
                 if t.get("promptZh"):
@@ -110,8 +113,8 @@ def main() -> int:
 
             item = {
                 "id": f"{source_id}-{dedup_key(prompt)}",
-                "title": title,
-                "titleZh": (raw.get("titleZh") or t12.get("titleZh") or "")[:80] + ("…" if len(raw.get("titleZh") or t12.get("titleZh") or "") > 80 else "") or None,
+                "title": t12.get("title") or title,   # AI 生成的中文短标题优先
+                "titleZh": (t12.get("titleZh") or raw.get("titleZh") or "")[:80] + ("…" if len(t12.get("titleZh") or raw.get("titleZh") or "") > 80 else "") or None,
                 "promptZh": raw.get("promptZh") or t12.get("promptZh"),
                 # 源站原生子分类(卡片左上角彩色标签用)
                 "sub": normalize_sub(raw_cat),

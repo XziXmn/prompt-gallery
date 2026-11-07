@@ -306,7 +306,12 @@
       <button class="lb-close" title="关闭">${svgWrap(ICONS.close)}</button>
       <div class="box">
         <div class="lb-handle"></div>
-        <div class="img-side"><img alt=""><div class="lb-thumbs" style="display:none"></div></div>
+        <div class="img-side">
+          <img alt="">
+          <button class="lb-nav prev" style="display:none" title="上一张">${svgWrap(ICONS.left)}</button>
+          <button class="lb-nav next" style="display:none" title="下一张">${svgWrap(ICONS.right)}</button>
+          <div class="lb-thumbs" style="display:none"></div>
+        </div>
         <div class="txt-side">
           <h3></h3>
           <div class="lb-meta"></div>
@@ -336,6 +341,7 @@
 
   let currentLightboxItem = null;
   let promptLang = "orig";
+  let lbNavIdx = 0;
 
   function renderLightboxPrompt() {
     const lb = document.querySelector(".lightbox");
@@ -358,16 +364,19 @@
     if (!it) { lb.querySelector("h3").textContent = "条目不存在"; return; }
     currentLightboxItem = it;
     lb.querySelector("h3").textContent = it.titleZh || it.title || "";
-    // 多图:主图 + 缩略图条切换
+    // 多图:主图 + 缩略图条 + 左右箭头
     const imgList = [it.image, ...(it.images || [])]
       .filter(Boolean)
       .filter((u, i, a) => a.indexOf(u) === i);
     const mainImg = lb.querySelector(".img-side img");
     const thumbs = lb.querySelector(".lb-thumbs");
+    const lbNavPrev = lb.querySelector(".lb-nav.prev");
+    const lbNavNext = lb.querySelector(".lb-nav.next");
     const setImg = (i) => {
       const u = imgList[i % imgList.length];
       mainImg.src = imgSrc(u) || PLACEHOLDER;
       thumbs.querySelectorAll(".lb-thumb").forEach((t, ti) => t.classList.toggle("on", ti === i));
+      lbNavIdx = i;
     };
     if (imgList.length > 1) {
       thumbs.style.display = "flex";
@@ -377,9 +386,18 @@
       thumbs.querySelectorAll(".lb-thumb").forEach((t, i) =>
         t.addEventListener("click", () => setImg(i))
       );
+      // 主图左右切换箭头
+      lbNavPrev.style.display = "flex";
+      lbNavNext.style.display = "flex";
+      lbNavPrev.onclick = () => setImg((lbNavIdx - 1 + imgList.length) % imgList.length);
+      lbNavNext.onclick = () => setImg((lbNavIdx + 1) % imgList.length);
     } else {
       thumbs.style.display = "none";
       thumbs.innerHTML = "";
+      lbNavPrev.style.display = "none";
+      lbNavNext.style.display = "none";
+      lbNavPrev.onclick = null;
+      lbNavNext.onclick = null;
     }
     setImg(0);
     lb.querySelector(".lb-meta").innerHTML = `

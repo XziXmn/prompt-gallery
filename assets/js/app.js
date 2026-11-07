@@ -335,7 +335,7 @@
       <div class="box">
         <div class="lb-handle"></div>
         <div class="img-side">
-          <img alt="">
+          <img alt="" fetchpriority="high">
           <button class="lb-nav prev" style="display:none" title="上一张">${svgWrap(ICONS.left)}</button>
           <button class="lb-nav next" style="display:none" title="下一张">${svgWrap(ICONS.right)}</button>
           <div class="lb-thumbs" style="display:none"></div>
@@ -410,7 +410,7 @@
     if (imgList.length > 1) {
       thumbs.style.display = "flex";
       thumbs.innerHTML = imgList
-        .map((u, i) => `<img class="lb-thumb${i === 0 ? " on" : ""}" loading="lazy" src="${esc(imgSrc(u))}" onerror="this.style.display='none'">`)
+        .map((u, i) => `<img class="lb-thumb${i === 0 ? " on" : ""}" src="${esc(imgSrc(u))}" fetchpriority="low" onerror="this.style.display='none'">`)
         .join("");
       thumbs.querySelectorAll(".lb-thumb").forEach((t, i) =>
         t.addEventListener("click", () => setImg(i))
@@ -483,7 +483,7 @@
         el.className = "lb-rel-card";
         el.dataset.id = p.id;
         el.innerHTML = `
-          <img loading="lazy" src="${esc(imgSrc(p.img))}" alt="${esc(p.tz || p.t)}"
+          <img src="${esc(imgSrc(p.img))}" alt="${esc(p.tz || p.t)}"
             ${p.ar ? `style="aspect-ratio:${(1 / p.ar).toFixed(4)}"` : ""}
             onerror="this.onerror=null;this.src=window.PG_PLACEHOLDER">
           <span class="lb-rel-title">${esc(p.tz || p.t)}</span>`;

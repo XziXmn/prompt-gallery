@@ -493,7 +493,7 @@
         c.addEventListener("click", () => openLightbox(c.dataset.id))
       );
       row.scrollTop = 0;
-      wrap.style.display = "block";
+      wrap.style.display = "flex";
     } catch { /* 推荐失败不影响详情展示 */ }
   }
 

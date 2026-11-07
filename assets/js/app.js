@@ -440,22 +440,31 @@
       const sameCat = shuffle(
         index.filter((e) => e.c === it.category && e.id !== it.id && e.img && !sameSub.includes(e))
       );
-      const picks = [...sameSub.slice(0, 3), ...sameCat].slice(0, 6);
+      const picks = [...sameSub.slice(0, 4), ...sameCat].slice(0, 8);
       if (!picks.length) return;
       wrap.querySelector(".lb-rel-cat").textContent = "· " + it.category;
       const row = wrap.querySelector(".lb-rel-row");
-      row.innerHTML = picks
-        .map((p) => `
-          <button class="lb-rel-card" data-id="${esc(p.id)}">
-            <img loading="lazy" src="${esc(imgSrc(p.img))}" alt="${esc(p.tz || p.t)}"
-              ${p.ar ? `style="aspect-ratio:${(1 / p.ar).toFixed(4)}"` : ""}
-              onerror="this.onerror=null;this.src=window.PG_PLACEHOLDER">
-            <span class="lb-rel-title">${esc(p.tz || p.t)}</span>
-          </button>`)
-        .join("");
+      // 双列瀑布流:按估算高度分配到较矮列,超出容器高度纵向滚动
+      row.innerHTML = '<div class="m-col"></div><div class="m-col"></div>';
+      const colEls = row.querySelectorAll(".m-col");
+      const colH = [0, 0];
+      picks.forEach((p) => {
+        const el = document.createElement("button");
+        el.className = "lb-rel-card";
+        el.dataset.id = p.id;
+        el.innerHTML = `
+          <img loading="lazy" src="${esc(imgSrc(p.img))}" alt="${esc(p.tz || p.t)}"
+            ${p.ar ? `style="aspect-ratio:${(1 / p.ar).toFixed(4)}"` : ""}
+            onerror="this.onerror=null;this.src=window.PG_PLACEHOLDER">
+          <span class="lb-rel-title">${esc(p.tz || p.t)}</span>`;
+        const t = colH[0] <= colH[1] ? 0 : 1;
+        colEls[t].appendChild(el);
+        colH[t] += (p.ar || 1.3) * 160 + 46;
+      });
       row.querySelectorAll(".lb-rel-card").forEach((c) =>
         c.addEventListener("click", () => openLightbox(c.dataset.id))
       );
+      row.scrollTop = 0;
       wrap.style.display = "block";
     } catch { /* 推荐失败不影响详情展示 */ }
   }

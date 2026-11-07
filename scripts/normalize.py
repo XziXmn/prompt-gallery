@@ -83,6 +83,8 @@ def main() -> int:
             if not prompt:
                 continue
             title = (raw.get("title") or "").strip() or prompt[:40]
+            if len(title) > 80:  # 个别源站把整段提示词存成标题,截断防撑爆版面
+                title = title[:80].rstrip() + "…"
             t12 = translations.get(f"{source_id}-{dedup_key(prompt)}") or {}
             raw_cat = raw.get("rawCategory")
 
@@ -97,7 +99,7 @@ def main() -> int:
             item = {
                 "id": f"{source_id}-{dedup_key(prompt)}",
                 "title": title,
-                "titleZh": raw.get("titleZh") or t12.get("titleZh"),
+                "titleZh": (raw.get("titleZh") or t12.get("titleZh") or "")[:80] + ("…" if len(raw.get("titleZh") or t12.get("titleZh") or "") > 80 else "") or None,
                 "promptZh": raw.get("promptZh") or t12.get("promptZh"),
                 # 源站原生子分类(卡片左上角彩色标签用)
                 "sub": normalize_sub(raw_cat),

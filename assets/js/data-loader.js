@@ -2,6 +2,13 @@
 (function () {
   "use strict";
 
+  // 资源版本:从自身的 script 标签 ?v= 提取,附加到所有数据请求,保证数据与代码同步更新
+  const ASSET_V = (function () {
+    const s = document.querySelector('script[src*="data-loader.js"]');
+    const m = s && s.src.match(/[?&]v=([^&]+)/);
+    return m ? m[1] : String(Date.now() % 100000);
+  })();
+
   const cache = {
     stats: null,
     index: null,        // Array(带 img)
@@ -12,7 +19,8 @@
   };
 
   async function fetchJSON(url) {
-    const resp = await fetch(url);
+    const url2 = url + (url.indexOf("?") > -1 ? "&" : "?") + "_v=" + ASSET_V;
+    const resp = await fetch(url2);
     if (!resp.ok) throw new Error(`加载失败 ${url}: ${resp.status}`);
     return resp.json();
   }

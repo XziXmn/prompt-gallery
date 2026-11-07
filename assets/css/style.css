@@ -498,7 +498,10 @@ button { font-family: inherit; }
 .lightbox .img-side img.lb-thumb:hover, .lb-thumb:hover { opacity: 1; }
 .lightbox .img-side img.lb-thumb.on, .lb-thumb.on { border-color: var(--blue); opacity: 1; }
 .lightbox .txt-side { padding: 30px 28px 24px; overflow-y: auto; display: flex; flex-direction: column; gap: 13px; }
-.lightbox .txt-side h3 { margin: 0; font-size: 19px; line-height: 1.45; font-weight: 750; letter-spacing: -0.2px; }
+.lightbox .txt-side h3 {
+  margin: 0; font-size: 19px; line-height: 1.45; font-weight: 750; letter-spacing: -0.2px;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
 .lightbox .lb-meta { display: flex; flex-wrap: wrap; gap: 7px; }
 .prompt-toolbar { display: flex; gap: 7px; align-items: center; }
 .prompt-toolbar .fchip.on { background: var(--fg); color: var(--card); }

@@ -232,9 +232,9 @@
       let rowH = r.sumAr > 0 ? (W - gaps) / r.sumAr : targetH;
       rowH = Math.max(targetH * 0.62, Math.min(rowH, targetH * 1.5));
       let used = 0;
-      r.list.forEach(({ it, ar }, idx) => {
+      r.list.forEach((it, idx) => {
         const el = map.get(it.id);
-        let w = ar * rowH;
+        let w = arOf(it) * rowH;
         if (idx === r.list.length - 1) w = Math.max(w, W - gaps - used);   // 末卡吃满行宽
         w = Math.min(w, W);
         used += w;

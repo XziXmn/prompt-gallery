@@ -195,46 +195,53 @@
   let resizeTimer = null;
 
   /**
-   * Justified 布局(Google Photos 式):每行贪心填充到容器宽,整行等高缩放,
-   * 行底天然齐平——底部参差问题由构造消除。真实 ar(94% 覆盖)纯计算,零测量零重排。
+   * Justified 布局(Google Photos 式):均衡分行 + 每行缩放至精确容器宽。
+   * 先按总宽算行数 N,再按配额分 N 行(末行也有足量卡片),每行缩放到满宽——
+   * 底部缺位由构造消除。真实 ar(94% 覆盖)纯计算,零测量零重排。
    */
   function justifyPlace(container, map, items) {
     const W = container.clientWidth || container.parentElement.clientWidth || 800;
     const gap = 12;
     const targetH = W < 640 ? 160 : W < 1000 ? 215 : 250;
+    const arOf = (it) => it.ar || 1.3;
 
-    // 贪心分行
+    // 均衡分行:总行数 N,每行配额 ≈ 总 ar / N
+    const totalAr = items.reduce((s, it) => s + arOf(it), 0);
+    const N = Math.max(1, Math.round((totalAr * targetH + gap * items.length) / W));
+    const quota = totalAr / N;
     const rows = [];
     let row = [], sumAr = 0;
-    for (const it of items) {
-      const ar = it.ar || 1.3;
-      row.push({ it, ar });
-      sumAr += ar;
-      if (sumAr * targetH + gap * (row.length - 1) >= W && row.length >= 2) {
-        rows.push({ list: row, sumAr, last: false });
+    for (let i = 0; i < items.length; i++) {
+      row.push(items[i]);
+      sumAr += arOf(items[i]);
+      const rowsLeft = N - rows.length - 1;          // 本行闭合后还剩几行
+      const itemsLeft = items.length - i - 1;
+      if (rowsLeft > 0 && sumAr >= quota * 0.85 && itemsLeft >= rowsLeft) {
+        rows.push({ list: row, sumAr });
         row = []; sumAr = 0;
       }
     }
-    if (row.length) rows.push({ list: row, sumAr, last: true });
+    if (row.length) rows.push({ list: row, sumAr });
 
-    // 建行:满行缩放到精确容器宽;末行不强行拉伸超高(上限 1.18 倍,超出左对齐)
+    // 建行:每行缩放到精确满宽;行高钳制在 [0.62, 1.5]×目标,超出时末卡吸收余量
     const frag = document.createDocumentFragment();
     for (const r of rows) {
       const rowEl = document.createElement("div");
       rowEl.className = "j-row";
       const gaps = gap * (r.list.length - 1);
-      let rowH = targetH;
-      if (r.sumAr > 0) {
-        const scaledH = (W - gaps) / r.sumAr;
-        if (!r.last || scaledH <= targetH * 1.18) rowH = Math.min(scaledH, targetH * 1.6);
-      }
-      for (const { it, ar } of r.list) {
+      let rowH = r.sumAr > 0 ? (W - gaps) / r.sumAr : targetH;
+      rowH = Math.max(targetH * 0.62, Math.min(rowH, targetH * 1.5));
+      let used = 0;
+      r.list.forEach(({ it, ar }, idx) => {
         const el = map.get(it.id);
-        const w = Math.min(ar * rowH, W);
+        let w = ar * rowH;
+        if (idx === r.list.length - 1) w = Math.max(w, W - gaps - used);   // 末卡吃满行宽
+        w = Math.min(w, W);
+        used += w;
         el.style.width = Math.round(w) + "px";
         el.querySelector(".thumb").style.height = Math.round(rowH) + "px";
         rowEl.appendChild(el);
-      }
+      });
       frag.appendChild(rowEl);
     }
     container.replaceChildren(frag);

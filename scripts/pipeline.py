@@ -16,6 +16,7 @@ from common import ROOT, log, read_sources_config  # noqa: E402
 
 STEPS_AFTER_COLLECT = [
     ("col_inbox.py", "收件箱收编"),
+    ("prune_dead_images.py", "死图巡检"),
     ("normalize.py", "归一化去重"),
     ("make_featured.py", "首页精选"),
     ("split_parts.py", "切片输出"),

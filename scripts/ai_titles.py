@@ -40,7 +40,7 @@ CJK = re.compile(r"[\u4e00-\u9fff]")
 
 API_BASE = os.environ.get("AI_BASE_URL", "https://api.deepseek.com").rstrip("/")
 API_KEY = os.environ.get("AI_API_KEY", "")
-API_MODEL = os.environ.get("AI_MODEL", "deepseek-chat")
+API_MODEL = os.environ.get("AI_MODEL", "deepseek-flash")
 
 
 def load_store() -> dict:
@@ -89,6 +89,13 @@ def parse_json_block(text: str):
         return []
 
 
+# 推文/营销式标题特征:这些"标题"其实是帖子文案,需要 AI 重新生成
+TWEETY = re.compile(
+    r"gpt|chatgpt|prompt|提示词|提示[:：]|完整|\[|]|http|@|#|教程|分享|发布|视频|指南|实测|攻略",
+    re.I,
+)
+
+
 def select_work(items: list[dict], store: dict) -> tuple[list[dict], list[dict], list[dict]]:
     """返回 (需要生成标题, 需要翻译标题, 需要翻译长提示词)。"""
     need_gen, need_tz, need_pz = [], [], []
@@ -96,12 +103,18 @@ def select_work(items: list[dict], store: dict) -> tuple[list[dict], list[dict],
         rec = store.get(it["id"]) or {}
         title = it.get("title") or ""
         prompt = it.get("prompt") or ""
-        # 1) 标题生成:无标题 / 标题是提示词开头(混同)且偏长 / 标题过短无信息量
+        # 1) 标题生成:无标题 / 混同(标题=提示词开头) / 无信息量 / 推文式标题 / 过长句子
         mixed = bool(title) and bool(norm_text(prompt).startswith(norm_text(title)[:20]))
-        need_title = (not title.strip()) or (mixed and len(title) > 25) or len(title.strip()) < 4
+        need_title = (
+            not title.strip()
+            or (mixed and len(title) > 25)
+            or len(title.strip()) < 4
+            or bool(TWEETY.search(title))
+            or len(title.strip()) > 16
+        )
         if need_title and "title" not in rec:
             need_gen.append(it)
-            continue  # 生成标题后顺带有中文标题,无需翻译
+            continue  # AI 直接产出中文标题,无需再翻译
         # 2) 标题翻译:非中文标题且缺 titleZh
         if title and not it.get("titleZh") and not CJK.search(title) and "titleZh" not in rec:
             need_tz.append(it)
@@ -188,11 +201,11 @@ def main() -> int:
             save_store(store)
             log(f"[ai] 进度 {done}/{todo_total}(成功 {ok} 失败 {failed})")
 
-    # 1) 批量生成标题(每批 10 条)
-    for i in range(0, len(need_gen), 10):
+    # 1) 批量生成标题(flash 1M 上下文,每批 24 条)
+    for i in range(0, len(need_gen), 24):
         if ok >= args.limit:
             break
-        batch = need_gen[i : i + 10]
+        batch = need_gen[i : i + 24]
         try:
             for r in run_gen(batch):
                 rid = str(r.get("id") or "")
